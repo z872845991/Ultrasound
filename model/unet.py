@@ -8,7 +8,7 @@ def double_conv(in_channels,out_channels):
         nn.Conv2d(out_channels,out_channels,3,padding=1),
         nn.ReLU(inplace=True)
     )
-class Unet(nn.Moudle):
+class Unet(nn.Module):
     def __init__(self,n_class):
         super().__init__()
 
