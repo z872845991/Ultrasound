@@ -20,16 +20,16 @@ class Unet(nn.Module):
 
         self.maxpool=nn.MaxPool2d(2)
 
-        self.up1=nn.ConvTranspose2d(1024,512)
+        self.up1=nn.ConvTranspose2d(1024,512,2,stride=2)
         self.conv_up1=double_conv(1024,512)
 
-        self.up2=nn.ConvTranspose2d(512,256)
+        self.up2=nn.ConvTranspose2d(512,256,2,stride=2)
         self.conv_up2=double_conv(512,256)
 
-        self.up3=nn.ConvTranspose2d(256,128)
+        self.up3=nn.ConvTranspose2d(256,128,2,stride=2)
         self.conv_up3=double_conv(256,128)
 
-        self.up4=nn.ConvTranspose2d(128,64)
+        self.up4=nn.ConvTranspose2d(128,64,2,stride=2)
         self.conv_up4=double_conv(128,64)
 
         self.conv_out=nn.Conv2d(64,n_class,1)
