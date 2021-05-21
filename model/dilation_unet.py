@@ -10,15 +10,15 @@ class Dilation_conv(nn.Module):
     def __init__(self,input_channel,output_channel,num_branches=4):
         super(Dilation_conv,self).__init__()
         self.num_branches=num_branches
-        self.conv11=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=2)
-        self.conv12=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=6,padding=4)
-        self.conv13=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=10,padding=8)
-        self.conv14=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=14,padding=12)
+        self.conv11=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=2,padding=2)
+        self.conv12=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=6,padding=6)
+        self.conv13=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=10,padding=10)
+        self.conv14=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=14,padding=14)
        
-        self.conv21=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=2)
-        self.conv22=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=6,padding=4)
-        self.conv23=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=10,padding=8)
-        self.conv24=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=14,padding=12)
+        self.conv21=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=2,padding=2)
+        self.conv22=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=6,padding=6)
+        self.conv23=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=10,padding=10)
+        self.conv24=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=14,padding=14)
   
         self.Bn=nn.BatchNorm2d(output_channel)
 
@@ -29,6 +29,10 @@ class Dilation_conv(nn.Module):
         x12=self.conv12(x)
         x13=self.conv13(x)
         x14=self.conv14(x)
+        # print(x11.size())
+        # print(x12.size())
+        # print(x13.size())
+        # print(x14.size())
         x11=self.Bn(x11)
         x12=self.Bn(x12)
         x13=self.Bn(x13)
@@ -91,6 +95,8 @@ class Unet(nn.Module):
         conv5=self.conv_down5(input)
 
         up1=self.up1(conv5)
+        # print("up1:",up1.size())
+        # print("conv4",conv4.size())
         merge1=torch.cat([conv4,up1],dim=1)
         conv_up1=self.conv_up1(merge1)
 
