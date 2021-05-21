@@ -47,7 +47,7 @@ class Dilation_conv(nn.Module):
         x24=self.Bn(x24)
         x21=(x21+x22+x23+x24)/4
         x21=self.relu(x21)
-        x = self.relu(21)
+        x = self.relu(x21)
         return x
 
 class Unet(nn.Module):
