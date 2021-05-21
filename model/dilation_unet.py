@@ -15,10 +15,10 @@ class Dilation_conv(nn.Module):
         self.conv13=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=10,padding=8)
         self.conv14=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=14,padding=12)
        
-        self.conv21=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=2)
-        self.conv22=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=6,padding=4)
-        self.conv23=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=10,padding=8)
-        self.conv24=nn.Conv2d(input_channel,output_channel,kernel_size=3,dilation=14,padding=12)
+        self.conv21=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=2)
+        self.conv22=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=6,padding=4)
+        self.conv23=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=10,padding=8)
+        self.conv24=nn.Conv2d(output_channel,output_channel,kernel_size=3,dilation=14,padding=12)
   
         self.Bn=nn.BatchNorm2d(output_channel)
 
@@ -36,7 +36,7 @@ class Dilation_conv(nn.Module):
         x11=(x11+x12+x13+x14)/4
         x=self.relu(x11)   
 
-        
+
         x21 = self.conv21(x)
         x22=self.conv22(x)
         x23=self.conv23(x)
