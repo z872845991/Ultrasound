@@ -63,13 +63,16 @@ class SpatialSELayer(nn.Module):
         *Roy et al., Concurrent Spatial and Channel Squeeze & Excitation in Fully Convolutional Networks, MICCAI 2018*
     """
 
-    def __init__(self, num_channels):
+    def __init__(self, num_channels,m):
         """
 
         :param num_channels: No of input channels
         """
         super(SpatialSELayer, self).__init__()
         self.conv = nn.Conv2d(num_channels, 1, 1)
+        self.conv1=nn.Conv2d(1,m,3,padding=1) #1
+        self.relu=nn.ReLU(inplace=True) #1
+        self.conv2=nn.Conv2d(m,1,3,padding=1) #1
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_tensor, weights=None):
@@ -88,6 +91,9 @@ class SpatialSELayer(nn.Module):
             out = F.conv2d(input_tensor, weights)
         else:
             out = self.conv(input_tensor)
+        out=self.conv1(out)
+        out=self.relu(out)
+        out=self.con2(out)
         squeeze_tensor = self.sigmoid(out)
 
         # spatial excitation
