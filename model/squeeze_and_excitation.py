@@ -93,7 +93,7 @@ class SpatialSELayer(nn.Module):
             out = self.conv(input_tensor)
         out=self.conv1(out)
         out=self.relu(out)
-        out=self.con2(out)
+        out=self.conv2(out)
         squeeze_tensor = self.sigmoid(out)
 
         # spatial excitation
