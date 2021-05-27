@@ -51,7 +51,7 @@ class DoubleConv_S(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-        self.spatial_att = SpatialSELayer(out_ch)
+        self.spatial_att = SpatialSELayer(out_ch,3)
 
     def forward(self, input):
         output = self.conv(input)
