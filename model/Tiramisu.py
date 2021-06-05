@@ -3,8 +3,10 @@ import torch
 import torch.nn as nn
 from torch.nn.modules import pooling
 from torch.nn.modules.activation import ReLU
+from torchsummary import summary
 class Denseblock(nn.Module):
     def __init__(self,n_layers,input_channel,k):
+        super(Denseblock,self).__init__()
         self.n_layers=n_layers
         self.conv=nn.ModuleList()
         for i in range(self.n_layers):
@@ -25,8 +27,9 @@ def Transition_down(inputs,outputs):
     )
 class Tiramisu(nn.Module):
     def __init__(self,input_channel,k=16,n_class=1):
+        super(Tiramisu,self).__init__()
         n_layers=[4,5,7,10,12,15,12,10,7,5,4]
-        l=len(n_layers)/2
+        l=int(len(n_layers)/2)
         self.l=l
         ## downsample
         self.conv1=nn.Conv2d(input_channel,48,kernel_size=3,padding=1)
@@ -34,7 +37,7 @@ class Tiramisu(nn.Module):
         downfilter=[]
         self.down=nn.ModuleList()
         self.td=nn.ModuleList()
-        for i in range(l):
+        for i in range(l): #i=0,1,2,3,4
             self.down.append(Denseblock(n_layers[i],filters,k))
             filters+=k*n_layers[i]
             downfilter.append(filters)
@@ -52,15 +55,15 @@ class Tiramisu(nn.Module):
         # self.down6=Denseblock(n_layers[5],656,k)
         
         ##bottleneck
-        self.bottle=Denseblock(n_layers[l],filters,k)
+        self.bottle=Denseblock(n_layers[l],filters,k) #l=5
         ##upsample
         self.up=nn.ModuleList()
         self.updb=nn.ModuleList()
         for i in range(l):
-            upfilter=n_layers[i+l]*k
+            upfilter=n_layers[i+l]*k #i+l=5,6,7,8,9
             self.up.append(nn.ConvTranspose2d(upfilter,upfilter,3,2,output_padding=1))
-            densefilter=upfilter+downfilter[l-1-i]
-            self.updb.append(Denseblock(n_layers[i+l+1],densefilter,k))
+            densefilter=upfilter+downfilter[l-1-i] #l-1-i=4,3,2,1,0
+            self.updb.append(Denseblock(n_layers[i+l+1],densefilter,k)) #i+l+1=6,7,8,9,10
         
         # self.up5=nn.ConvTranspose2d(80,3,2)
         # self.updb5=Denseblock(n_layers[6],input_channel,k)
@@ -84,12 +87,16 @@ class Tiramisu(nn.Module):
             downc.append(feature)
             feature=self.td[i](feature)
         
-        bottles=self.bottle(feature)
+        feature=self.bottle(feature)
         
         for i in range(self.l):
-            tu=self.up[i](bottles)
-            feature=torch.cat([downc[self.l-1-i],tu],dim=1)
+            feature=self.up[i]()
+            feature=torch.cat([downc[self.l-1-i],feature],dim=1)
             feature=self.updb[i](feature)
         
         output=self.conv2(feature)
         return output
+if __name__=='__main__':
+    model=Tiramisu(3)
+    # summary(model,(3,224,224))
+    print(model)
