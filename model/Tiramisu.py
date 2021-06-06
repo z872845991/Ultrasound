@@ -115,12 +115,12 @@ class Tiramisu(nn.Module):
         for i in range(self.l):
             feature=self.down[i](feature)
             downc.append(feature)
-            print("skip",downc[i].shape)
+            #print("skip",downc[i].shape)
             feature=self.td[i](feature)
-            print("down",feature.shape)
+            #print("down",feature.shape)
         
         feature=self.bottle(feature)
-        print("bottle",feature.shape)
+        #print("bottle",feature.shape)
         for i in range(self.l):
             feature=self.up[i](feature)
             feature=torch.cat([downc[self.l-1-i],feature],dim=1)
