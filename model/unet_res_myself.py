@@ -58,13 +58,13 @@ class Unet_res_myself(nn.Module):
 
         conv3=self.conv_down3(input)
         input=self.maxpool(conv3)
-        o3=self.origin2(o3)
+        o3=self.origin3(o3)
         o4=self.maxpool(o3)
 
         conv4=self.conv_down4(input)
         input=self.maxpool(conv4)
-        o4=self.origin2(o4)
-        o5=self.maxpool(o4)
+        o4=self.origin4(o4)
+        #o5=self.maxpool(o4)
 
         conv5=self.conv_down5(input)
 
