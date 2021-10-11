@@ -25,9 +25,9 @@ class Unet_res_myself(nn.Module):
         self.origin3=origin(128,256)
         self.origin4=origin(256,512)
         self.conv_down1=double_conv(64,64)
-        self.conv_down2=double_conv(128,128)
-        self.conv_down3=double_conv(256,256)
-        self.conv_down4=double_conv(512,512)
+        self.conv_down2=double_conv(192,128)
+        self.conv_down3=double_conv(384,256)
+        self.conv_down4=double_conv(768,512)
         self.conv_down5=double_conv(512,1024)
 
         self.maxpool=nn.MaxPool2d(2)
@@ -53,19 +53,19 @@ class Unet_res_myself(nn.Module):
         o2=self.maxpool(o1)
 
         o2=self.origin2(o2) 
-        input=torch.add(o2,input)
+        input=torch.cat([o2,input],dim=1)
         conv2=self.conv_down2(input)
         input=self.maxpool(conv2)
         o3=self.maxpool(o2)
 
         o3=self.origin3(o3)
-        input=torch.add(o3,input)
+        input=torch.cat([o3,input],dim=1)
         conv3=self.conv_down3(input)
         input=self.maxpool(conv3)
         o4=self.maxpool(o3)
 
         o4=self.origin4(o4)
-        input=torch.add(o4,input)
+        input=torch.cat([o4,input],dim=1)
         conv4=self.conv_down4(input)
         input=self.maxpool(conv4)
         
