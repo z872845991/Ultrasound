@@ -52,22 +52,23 @@ class Unet_res_myself(nn.Module):
         input=self.maxpool(conv1)
         o2=self.maxpool(o1)
 
+        o2=self.origin2(o2) 
         input=torch.add(o2,input)
         conv2=self.conv_down2(input)
-        o2=self.origin2(o2)  
         input=self.maxpool(conv2)
         o3=self.maxpool(o2)
 
+        o3=self.origin3(o3)
         input=torch.add(o3,input)
         conv3=self.conv_down3(input)
         input=self.maxpool(conv3)
-        o3=self.origin3(o3)
         o4=self.maxpool(o3)
 
+        o4=self.origin4(o4)
         input=torch.add(o4,input)
         conv4=self.conv_down4(input)
         input=self.maxpool(conv4)
-        o4=self.origin4(o4)
+        
 
         conv5=self.conv_down5(input)
 
