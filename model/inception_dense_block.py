@@ -10,7 +10,7 @@ def conv(in_channels,out_channels,kernel=3,pad=1):
     )
 #Inception_dense_block_1  
 #三路，1*1加到每一路，密集连接，最后三路结果融合
-class Incpetion_dense_block_1(nn.Moudle):
+class Incpetion_dense_block_1(nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
