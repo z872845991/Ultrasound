@@ -35,12 +35,14 @@ class Incpetion_dense_block_1(nn.Module):
         l32=self.conv32(l3)
         l33=self.conv33(l32)
 
-        l1=torch.add(l1,l12,input)
+        l1=torch.add(l1,l12)
+        l1=torch.add(l1,input)
 
         l2=torch.add(l2,input)
 
-        l3=torch.add(l3,l32,l33,input)
-
+        l3=torch.add(l3,l32)
+        l3=torch.add(l3,l33)
+        l3=torch.add(l3,input)
         l=torch.cat([l1,l2,l3],dim=1)
 
         l=self.conve(l)
