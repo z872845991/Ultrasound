@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import torch
 import torch.nn as nn
+from model.inception_dense_block import Incpetion_dense_block_1
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
         nn.Conv2d(in_channels,out_channels,3,padding=1),
@@ -10,7 +11,7 @@ def double_conv(in_channels,out_channels):
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
-class Unet(nn.Module):
+class Idea3(nn.Module):
     def __init__(self,n_class):
         super().__init__()
 
@@ -18,7 +19,7 @@ class Unet(nn.Module):
         self.conv_down2=double_conv(64,128)
         self.conv_down3=double_conv(128,256)
         self.conv_down4=double_conv(256,512)
-        self.conv_down5=double_conv(512,1024)
+        self.conv_down5=Incpetion_dense_block_1()
 
         self.maxpool=nn.MaxPool2d(2)
 
