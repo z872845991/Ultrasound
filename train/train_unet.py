@@ -19,7 +19,7 @@ class train_model():
         self.train_path=train_path
         self.val_path=val_path
         self.device=device
-        self.dataloders=dataloaders
+        self.dataloaders=dataloaders
     def summarys(self,input_size):
         summary(self.model,input_size=input_size)
     def fit(self):
