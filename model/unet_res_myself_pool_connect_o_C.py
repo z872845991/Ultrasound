@@ -17,7 +17,7 @@ def origin(in_channels,out_channels):
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True),
     )
-class Unet_res_myself(nn.Module):
+class Unet_res_myself_pool(nn.Module):
     def __init__(self,n_class):
         super().__init__()
         self.origin1=origin(3,64)
