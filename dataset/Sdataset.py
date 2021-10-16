@@ -78,13 +78,14 @@ if __name__=='__main__':
                              batch_size=1,
                              shuffle=True,
                              num_workers=1)
-    a=next(iter(dataset_loader))
-    img,label=a[0],a[1]
-    image=img[0].numpy()
-    image=image.transpose(1,2,0)
-    print(image.shape)
-    plt.imshow()
-    plt.show()
+    print(len(sdata))
+    # a=next(iter(dataset_loader))
+    # img,label=a[0],a[1]
+    # image=img[0].numpy()
+    # image=image.transpose(1,2,0)
+    # print(image.shape)
+    # plt.imshow()
+    # plt.show()
 
 
 
