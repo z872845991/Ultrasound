@@ -58,8 +58,9 @@ class train_model_local():
                     te_avgmeter7 = AverageMeter()
                     epoch_loss=0
                     with torch.no_grad():
-                        for idx,data,z in enumerate(self.dataloaders[phase]):
+                        for idx,data in enumerate(self.dataloaders[phase]):
                             inputs,labels=data[0].to(self.device),data[1].to(self.device)
+                            z=data[2]
                             outputs=self.model(inputs)
                             loss=self.criterion(outputs,labels)
                             epoch_loss+=loss.item()
