@@ -12,8 +12,8 @@ class SELayer(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, x):
+    def forward(self,x):
         b, c, _, _ = x.size()
         y = self.avg_pool(x).view(b, c)
         y = self.fc(y).view(b, c, 1, 1)
-        return x * y.expand_as(x)
+        return y

@@ -44,9 +44,10 @@ class Incpetion_SE_block(nn.Module):
         # l3=torch.add(l3,l32)
         # l3=torch.add(l3,l33)
         # l3=torch.add(l3,input)
-        l1=self.se(input,l12)
-        l2=self.se(input,l2)
-        l3=self.se(input,l33)
+        se=self.se(input)
+        l1=l12 * se.expand_as(l12)
+        l2=l2 * se.expand_as(l2)
+        l3=l33 * se.expand_as(l33)
         l=torch.cat([l1,l2,l3],dim=1)
         l=self.conve(l)
         return l
