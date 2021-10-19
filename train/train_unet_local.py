@@ -81,7 +81,8 @@ class train_model_local():
                             te_avgmeter6.update(TPR1)
                             te_avgmeter7.update(F11)
                             if epoch==80:
-                                torch.save(self.model.state_dict(),os.path.join(path3,'_%d.pth'%epoch))
+                                path3=path3+'_%d.pth'%epoch
+                                torch.save(self.model.state_dict(),path3)
                                 if iou1 < threshold:
                                     with open('/content/drive/MyDrive/result/hard/hard_seg_7m_unet_change.txt', 'a+') as file:
                                         for s in z:
