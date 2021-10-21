@@ -26,7 +26,7 @@ class train_model_local():
     def fit(self,file1,file2,path3):
         #bigiou=0
         for epoch in range(self.num_epochs):
-            print("Start epoch %d",epoch)
+            print("Start epoch %d"%epoch)
             for phase in ['train','val']:
                 if phase =='train':
                     self.model.train()
