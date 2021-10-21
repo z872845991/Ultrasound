@@ -52,3 +52,48 @@ class Incpetion_SE_block(nn.Module):
         l=torch.cat([l1,l2,l3],dim=1)
         l=self.conve(l)
         return l
+
+
+class Incpetion_SE_block_decoder(nn.Module):
+    def __init__(self,in_channel):
+        super().__init__()
+
+        self.conv1=conv(in_channel,in_channel,1,0)
+        self.conv11=conv(in_channel,in_channel)
+        self.conv21=conv(in_channel,in_channel)
+        self.conv31=conv(in_channel,in_channel)
+        self.conv12=conv(in_channel,in_channel)
+        self.conv32=conv(in_channel,in_channel)
+        self.conv33=conv(in_channel,in_channel)
+        l=in_channel*3
+        r=in_channel//2
+        self.conve=conv(l,r)
+
+        self.se=SELayer(in_channel)
+    
+    def forward(self,input):
+        input=self.conv1(input)
+
+        l1=self.conv11(input)
+        l2=self.conv21(input)
+        l3=self.conv31(input)
+
+        l12=self.conv12(l1)
+        l32=self.conv32(l3)
+        l33=self.conv33(l32)
+
+        # l1=torch.add(l1,l12)
+        # l1=torch.add(l1,input)
+
+        # l2=torch.add(l2,input)
+
+        # l3=torch.add(l3,l32)
+        # l3=torch.add(l3,l33)
+        # l3=torch.add(l3,input)
+        se=self.se(input)
+        l1=l12 * se.expand_as(l12)
+        l2=l2 * se.expand_as(l2)
+        l3=l33 * se.expand_as(l33)
+        l=torch.cat([l1,l2,l3],dim=1)
+        l=self.conve(l)
+        return l
