@@ -11,7 +11,7 @@ def double_conv(in_channels,out_channels):
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
-class Unet_encoder_idea3_se(nn.Module):
+class Unet_decoder_idea3_se(nn.Module):
     def __init__(self,n_class):
         super().__init__()
 
