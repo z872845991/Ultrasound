@@ -10,7 +10,7 @@ def conv(in_channels,out_channels,kernel=3,pad=1):
         nn.ReLU(inplace=True)
     )
 class Incpetion_SE_block(nn.Module):
-    def __init__(self,in_channel) -> None:
+    def __init__(self,in_channel):
         super().__init__()
 
         self.conv1=conv(in_channel,in_channel,1,0)
