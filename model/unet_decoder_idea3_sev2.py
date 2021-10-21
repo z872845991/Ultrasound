@@ -1,17 +1,7 @@
 # -*- coding: utf-8 -*-
-
-# ----------------------------------------------------------------
-# Input size (MB): 0.57
-# Forward/backward pass size (MB): 813.51
-# Params size (MB): 191.69
-# Estimated Total Size (MB): 1005.77
-# ----------------------------------------------------------------
-
-
 import torch
 import torch.nn as nn
-from model.inception_SE_block import Incpetion_SE_block
-from torchsummary import summary
+from model.inception_SE_block import Incpetion_SE_block_decoder
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
         nn.Conv2d(in_channels,out_channels,3,padding=1),
@@ -21,29 +11,29 @@ def double_conv(in_channels,out_channels):
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
-class Unet_encoder_idea3_se(nn.Module):
+class Unet_decoder_idea3_se(nn.Module):
     def __init__(self,n_class):
         super().__init__()
 
         self.conv_down1=double_conv(3,64)
-        self.conv_down2=Incpetion_SE_block(64)
-        self.conv_down3=Incpetion_SE_block(128)
-        self.conv_down4=Incpetion_SE_block(256)
-        self.conv_down5=Incpetion_SE_block(512)
+        self.conv_down2=double_conv(64,128)
+        self.conv_down3=double_conv(128,256)
+        self.conv_down4=double_conv(256,512)
+        self.conv_down5=double_conv(512,1024)
 
         self.maxpool=nn.MaxPool2d(2)
 
         self.up1=nn.ConvTranspose2d(1024,512,2,stride=2)
-        self.conv_up1=double_conv(1024,512)
+        self.conv_up1=Incpetion_SE_block_decoder(1024)
 
         self.up2=nn.ConvTranspose2d(512,256,2,stride=2)
-        self.conv_up2=double_conv(512,256)
+        self.conv_up2=Incpetion_SE_block_decoder(512)
 
         self.up3=nn.ConvTranspose2d(256,128,2,stride=2)
-        self.conv_up3=double_conv(256,128)
+        self.conv_up3=Incpetion_SE_block_decoder(256)
 
         self.up4=nn.ConvTranspose2d(128,64,2,stride=2)
-        self.conv_up4=double_conv(128,64)
+        self.conv_up4=Incpetion_SE_block_decoder(128)
 
         self.conv_out=nn.Conv2d(64,n_class,1)
 
@@ -81,6 +71,3 @@ class Unet_encoder_idea3_se(nn.Module):
 
         return output
 
-if __name__=='__main__':
-    model=Unet_encoder_idea3_se(1)
-    summary(model,(3,224,224))

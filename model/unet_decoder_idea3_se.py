@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
+
+# ----------------------------------------------------------------
+# Input size (MB): 0.57
+# Forward/backward pass size (MB): 2455.80
+# Params size (MB): 447.28
+# Estimated Total Size (MB): 2903.65
+# ----------------------------------------------------------------
+
 import torch
 import torch.nn as nn
 from model.inception_SE_block import Incpetion_SE_block_decoder
+from torchsummary import summary
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
         nn.Conv2d(in_channels,out_channels,3,padding=1),
@@ -71,3 +80,6 @@ class Unet_decoder_idea3_se(nn.Module):
 
         return output
 
+if __name__=='__main__':
+    model=Unet_decoder_idea3_se(1)
+    summary(model,(3,224,224))

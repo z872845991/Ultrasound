@@ -2,16 +2,24 @@
 
 # ----------------------------------------------------------------
 # Input size (MB): 0.57
-# Forward/backward pass size (MB): 813.51
-# Params size (MB): 191.69
-# Estimated Total Size (MB): 1005.77
+# Forward/backward pass size (MB): 664.20
+# Params size (MB): 118.59
+# Estimated Total Size (MB): 783.36
 # ----------------------------------------------------------------
-
 
 import torch
 import torch.nn as nn
-from model.inception_SE_block import Incpetion_SE_block
+from model.SE_Layer_origin import SELayer_origin
 from torchsummary import summary
+def double_conv_encoder(in_channels,out_channels):
+    return nn.Sequential(
+        nn.Conv2d(in_channels,out_channels,3,padding=1),
+        nn.BatchNorm2d(out_channels),
+        nn.ReLU(inplace=True),
+        nn.Conv2d(out_channels,out_channels,3,padding=1),
+        nn.BatchNorm2d(out_channels),
+        nn.ReLU(inplace=True),
+    )
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
         nn.Conv2d(in_channels,out_channels,3,padding=1),
@@ -19,17 +27,18 @@ def double_conv(in_channels,out_channels):
         nn.ReLU(inplace=True),
         nn.Conv2d(out_channels,out_channels,3,padding=1),
         nn.BatchNorm2d(out_channels),
-        nn.ReLU(inplace=True)
+        nn.ReLU(inplace=True),
+        SELayer_origin(out_channels)
     )
-class Unet_encoder_idea3_se(nn.Module):
+class Unet_decoder_se(nn.Module):
     def __init__(self,n_class):
         super().__init__()
 
-        self.conv_down1=double_conv(3,64)
-        self.conv_down2=Incpetion_SE_block(64)
-        self.conv_down3=Incpetion_SE_block(128)
-        self.conv_down4=Incpetion_SE_block(256)
-        self.conv_down5=Incpetion_SE_block(512)
+        self.conv_down1=double_conv_encoder(3,64)
+        self.conv_down2=double_conv_encoder(64,128)
+        self.conv_down3=double_conv_encoder(128,256)
+        self.conv_down4=double_conv_encoder(256,512)
+        self.conv_down5=double_conv_encoder(512,1024)
 
         self.maxpool=nn.MaxPool2d(2)
 
@@ -82,5 +91,6 @@ class Unet_encoder_idea3_se(nn.Module):
         return output
 
 if __name__=='__main__':
-    model=Unet_encoder_idea3_se(1)
+    model=Unet_decoder_se(1)
     summary(model,(3,224,224))
+    

@@ -2,15 +2,14 @@
 
 # ----------------------------------------------------------------
 # Input size (MB): 0.57
-# Forward/backward pass size (MB): 813.51
-# Params size (MB): 191.69
-# Estimated Total Size (MB): 1005.77
+# Forward/backward pass size (MB): 711.72
+# Params size (MB): 119.25
+# Estimated Total Size (MB): 831.55
 # ----------------------------------------------------------------
-
 
 import torch
 import torch.nn as nn
-from model.inception_SE_block import Incpetion_SE_block
+from model.SE_Layer_origin import SELayer_origin
 from torchsummary import summary
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
@@ -19,17 +18,18 @@ def double_conv(in_channels,out_channels):
         nn.ReLU(inplace=True),
         nn.Conv2d(out_channels,out_channels,3,padding=1),
         nn.BatchNorm2d(out_channels),
-        nn.ReLU(inplace=True)
+        nn.ReLU(inplace=True),
+        SELayer_origin(out_channels)
     )
-class Unet_encoder_idea3_se(nn.Module):
+class Unet_all_se(nn.Module):
     def __init__(self,n_class):
         super().__init__()
 
         self.conv_down1=double_conv(3,64)
-        self.conv_down2=Incpetion_SE_block(64)
-        self.conv_down3=Incpetion_SE_block(128)
-        self.conv_down4=Incpetion_SE_block(256)
-        self.conv_down5=Incpetion_SE_block(512)
+        self.conv_down2=double_conv(64,128)
+        self.conv_down3=double_conv(128,256)
+        self.conv_down4=double_conv(256,512)
+        self.conv_down5=double_conv(512,1024)
 
         self.maxpool=nn.MaxPool2d(2)
 
@@ -82,5 +82,5 @@ class Unet_encoder_idea3_se(nn.Module):
         return output
 
 if __name__=='__main__':
-    model=Unet_encoder_idea3_se(1)
+    model=Unet_all_se(1)
     summary(model,(3,224,224))
