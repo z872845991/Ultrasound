@@ -21,9 +21,19 @@ class Self_Attention(nn.Module):
         Q = self.q(x) # Q: batch_size * seq_len * dim_k
         K = self.k(x) # K: batch_size * seq_len * dim_k
         V = self.v(x) # V: batch_size * seq_len * dim_v
-         
+        print(Q.shape)
+        print(K.shape)
+        print(V.shape)
         atten = nn.Softmax(dim=-1)(torch.bmm(Q,K.permute(0,2,1))) * self._norm_fact # Q * K.T() # batch_size * seq_len * seq_len
-        
+        print(atten.shape)
         output = torch.bmm(atten,V) # Q * K.T() * V # batch_size * seq_len * dim_v
-        
+        print(output.shape)
         return output
+
+if __name__=='__main__':
+    x=torch.randn([3,224,224])
+    x=Self_Attention(3,3,64)(x)
+    x=Self_Attention(64,3,128)(x)
+    x=Self_Attention(128,3,256)(x)
+    x=Self_Attention(256,3,512)(x)
+    x=Self_Attention(512,3,1024)(x)

@@ -10,20 +10,21 @@ def conv(in_channels,out_channels,kernel=3,pad=1):
         nn.ReLU(inplace=True)
     )
 class Incpetion_SE_block(nn.Module):
-    def __init__(self) -> None:
+    def __init__(self,in_channel) -> None:
         super().__init__()
 
-        self.conv1=conv(512,512,1,0)
-        self.conv11=conv(512,512)
-        self.conv21=conv(512,512)
-        self.conv31=conv(512,512)
-        self.conv12=conv(512,512)
-        self.conv32=conv(512,512)
-        self.conv33=conv(512,512)
+        self.conv1=conv(in_channel,in_channel,1,0)
+        self.conv11=conv(in_channel,in_channel)
+        self.conv21=conv(in_channel,in_channel)
+        self.conv31=conv(in_channel,in_channel)
+        self.conv12=conv(in_channel,in_channel)
+        self.conv32=conv(in_channel,in_channel)
+        self.conv33=conv(in_channel,in_channel)
+        l=in_channel*3
+        r=in_channel*2
+        self.conve=conv(l,r)
 
-        self.conve=conv(1536,1024)
-
-        self.se=SELayer(512)
+        self.se=SELayer(in_channel)
     
     def forward(self,input):
         input=self.conv1(input)
