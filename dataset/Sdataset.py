@@ -7,6 +7,8 @@ import numpy as np
 from torchvision.transforms import transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+
+#从两个文件夹分别读取图片和标签
 def make_dataset(path1,path2):
     imgs=[]
     label=[]
