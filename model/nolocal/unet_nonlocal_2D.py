@@ -1,5 +1,5 @@
 # import sys
-# sys.path.append("D:\\OneDrive\\Github\\Learn_wjs\\学习\\Code\\unet_segmentation\\")
+# sys.path.append("D:/Onedrive/Github/Ultrasound")
 # import os 
 # os.environ["PATH"]+=os.pathsep+'D:/Program Files/Graphviz/bin/'
 import math

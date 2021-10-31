@@ -1,5 +1,5 @@
 # import sys
-# sys.path.append("D:\\OneDrive\\Github\\Learn_wjs\\学习\\Code\\unet_segmentation\\")
+# sys.path.append("D:/Onedrive/Github/Ultrasound")
 import torch
 from torch import nn
 from torch.nn import functional as F

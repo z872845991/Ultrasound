@@ -1,32 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import argparse
 from torch.utils.data import DataLoader
 from torch import nn, optim
 from torchvision.transforms import transforms
 from dataset.Fetus import FetusDataset
-# from model.seunet import Unet
-# from model.unet import Unet
-# from archs import NestedUNet
-# from ince_unet import Unet
-# from eca_unet import Unet
-# from model.archs import NestedUNet
-from model.Eca_att_unet import Att_Unet
-# from model.attention_u_net import Att_Unet
-# from model.dp_unet import Unet
-# from model.ternausnet import UNet11,UNet16
-# from model.r2unet import R2U_Net
-
-# from model.res_unet import ResNet34Unet
-# from model.aug_att_uent import AugAtt_Unet
-# from model.self_att_unet import Att_Unet
-# from model.channel_unet import myChannelUnet
-# from model.cenet import CE_Net_
-# from model.nolocal.unet_nonlocal_2D import unet_nonlocal_2D
-from tools.metrics import dice_coef,iou_score,get_accuracy,get_precision,get_specificity,get_recall,get_F1
-from tools.utils import AverageMeter
-import datetime
 from model.unet import Unet
 
 x_transforms = transforms.Compose([
