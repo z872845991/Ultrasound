@@ -166,5 +166,5 @@ class Unet_plus_nonlocal(nn.Module):
         return output+convpp2
 
 if __name__=='__main__':
-    model=Unet(1)
+    model=Unet_plus_nonlocal(1)
     summary(model,(3,224,224))
