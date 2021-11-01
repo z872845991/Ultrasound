@@ -1,5 +1,5 @@
-# import sys
-# sys.path.append("D:/Onedrive/Github/Ultrasound")
+import sys
+sys.path.append("D:/Onedrive/Github/Ultrasound")
 # import os 
 # os.environ["PATH"]+=os.pathsep+'D:/Program Files/Graphviz/bin/'
 import math
@@ -9,7 +9,7 @@ from model.nolocal.nonlocal_layer import NONLocalBlock2D
 import torch.nn.functional as F
 from torchsummary import summary
 # from torchviz import make_dot
-
+import torch
 
 class unet_nonlocal_2D(nn.Module):
 
@@ -65,7 +65,6 @@ class unet_nonlocal_2D(nn.Module):
         conv1 = self.conv1(inputs)
         maxpool1 = self.maxpool1(conv1)
         nonlocal1 = self.nonlocal1(maxpool1)
-
         conv2 = self.conv2(nonlocal1)
         maxpool2 = self.maxpool2(conv2)
         nonlocal2 = self.nonlocal2(maxpool2)
@@ -77,6 +76,7 @@ class unet_nonlocal_2D(nn.Module):
         maxpool4 = self.maxpool4(conv4)
 
         center = self.center(maxpool4)
+        print(center.shape)
         up4 = self.up_concat4(conv4, center)
         up3 = self.up_concat3(conv3, up4)
         up2 = self.up_concat2(conv2, up3)
@@ -92,13 +92,13 @@ class unet_nonlocal_2D(nn.Module):
 
         return log_p
 
-import torch
+
 if __name__=='__main__':
     a = torch.randn((1,3,512,512))
     model = unet_nonlocal_2D()
-    print(model)
+    #print(model)
     b = model(a)
-    print(b.shape)
-    summary(model,(3,224,224))
+    #print(b.shape)
+    #summary(model,(3,224,224))
     # g=make_dot(b)
     # g.render('D:\\Onedrive\\nonlocal_2d',view=False)

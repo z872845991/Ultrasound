@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append('D:/Onedrive/Github/Ultrasound')
+sys.path.append("D:/Onedrive/Github/Ultrasound")
 import torch
 import torch.nn as nn
+from torchsummary import summary
+import math
+from model.nolocal.utils import unetConv2, unetUp
+from model.nolocal.nonlocal_layer import NONLocalBlock2D
+import torch.nn.functional as F
+
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
         nn.Conv2d(in_channels,out_channels,3,padding=1),
@@ -12,16 +18,17 @@ def double_conv(in_channels,out_channels):
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
-class Unet(nn.Module):
+class Unet_embedd_nonlocal(nn.Module):
     def __init__(self,n_class):
         super().__init__()
-
+        
         self.conv_down1=double_conv(3,64)
         self.conv_down2=double_conv(64,128)
         self.conv_down3=double_conv(128,256)
         self.conv_down4=double_conv(256,512)
         self.conv_down5=double_conv(512,1024)
-
+        
+        self.center=NONLocalBlock2D(1024)
         self.maxpool=nn.MaxPool2d(2)
 
         self.up1=nn.ConvTranspose2d(1024,512,2,stride=2)
@@ -35,7 +42,6 @@ class Unet(nn.Module):
 
         self.up4=nn.ConvTranspose2d(128,64,2,stride=2)
         self.conv_up4=double_conv(128,64)
-
         self.conv_out=nn.Conv2d(64,n_class,1)
 
     def forward(self,input):
@@ -52,7 +58,7 @@ class Unet(nn.Module):
         input=self.maxpool(conv4)
 
         conv5=self.conv_down5(input)
-        print(conv5.shape)
+        conv5=self.center(conv5)
         up1=self.up1(conv5)
         merge1=torch.cat([conv4,up1],dim=1)
         conv_up1=self.conv_up1(merge1)
@@ -73,6 +79,5 @@ class Unet(nn.Module):
         return output
 
 if __name__=='__main__':
-    a=torch.randn(1,3,512,512)
-    model=Unet(1)
-    b=model(a)
+    model=Unet_embedd_nonlocal(1)
+    summary(model,(3,224,224))
