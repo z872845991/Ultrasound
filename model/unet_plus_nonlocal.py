@@ -4,7 +4,7 @@
 import torch
 import torch.nn as nn
 from model.nolocal.unet_nonlocal_2D import unet_nonlocal_2D
-from torchsummary import summary
+# from torchsummary import summary
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
         nn.Conv2d(in_channels,out_channels,3,padding=1),
@@ -78,5 +78,5 @@ class Unet_plus_nonlocal(nn.Module):
         return output+convpp2
 
 if __name__=='__main__':
-    model=Unet(1)
-    summary(model,(3,224,224))
+    # model=Unet(1)
+    # summary(model,(3,224,224))

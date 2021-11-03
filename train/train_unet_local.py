@@ -23,7 +23,7 @@ class train_model_local():
         self.dataloaders=dataloaders
     def summarys(self,input_size):
         summary(self.model,input_size=input_size)
-    def fit(self,file1,file2,path3):
+    def fit(self,file1,file2,path3,hard):
         #bigiou=0
         for epoch in range(self.num_epochs):
             print("Start epoch %d"%epoch)
@@ -84,7 +84,7 @@ class train_model_local():
                             te_avgmeter7.update(F11)
                             if epoch==(self.num_epochs-1):
                                 if iou1 < threshold:
-                                    with open('/content/drive/MyDrive/result/hard/hard_seg_7m_unet_change.txt', 'a+') as file:
+                                    with open(hard, 'a+') as file:
                                         for s in z:
                                             file.write(s + '\n')
                     if epoch==(self.num_epochs-1):
