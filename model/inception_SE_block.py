@@ -13,18 +13,18 @@ class Incpetion_SE_block(nn.Module):
     def __init__(self,in_channel):
         super().__init__()
 
-        self.conv1=conv(in_channel,in_channel,1,0)
-        self.conv11=conv(in_channel,in_channel)
-        self.conv21=conv(in_channel,in_channel)
-        self.conv31=conv(in_channel,in_channel)
-        self.conv12=conv(in_channel,in_channel)
-        self.conv32=conv(in_channel,in_channel)
-        self.conv33=conv(in_channel,in_channel)
-        l=in_channel*3
+        self.conv1=conv(in_channel,in_channel//2,1,0)
+        self.conv11=conv(in_channel//2,in_channel//2)
+        self.conv21=conv(in_channel//2,in_channel//2)
+        self.conv31=conv(in_channel//2,in_channel//2)
+        self.conv12=conv(in_channel//2,in_channel//2)
+        self.conv32=conv(in_channel//2,in_channel//2)
+        self.conv33=conv(in_channel//2,in_channel//2)
+        l=in_channel//2*3
         r=in_channel*2
         self.conve=conv(l,r)
 
-        self.se=SELayer(in_channel)
+        self.se=SELayer(in_channel//2)
     
     def forward(self,input):
         input=self.conv1(input)
