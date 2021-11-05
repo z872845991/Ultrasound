@@ -130,5 +130,5 @@ class Tiramisu(nn.Module):
         return output
 if __name__=='__main__':
     model=Tiramisu(3)
-    # summary(model,(3,224,224))
+    summary(model,(3,224,224))
     print(model)

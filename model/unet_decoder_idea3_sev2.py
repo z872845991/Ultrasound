@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+import sys
+sys.path.append("D:\\Onedrive\\Github\\Ultrasound")
 import torch
 import torch.nn as nn
+from torchsummary.torchsummary import summary
 from model.inception_SE_block import Incpetion_SE_block_decoder
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
@@ -11,7 +14,7 @@ def double_conv(in_channels,out_channels):
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
-class Unet_decoder_idea3_se(nn.Module):
+class Unet_decoder_idea3_se_v2(nn.Module):
     def __init__(self,n_class):
         super().__init__()
 
@@ -55,7 +58,7 @@ class Unet_decoder_idea3_se(nn.Module):
         up1=self.up1(conv5)
         merge1=torch.cat([conv4,up1],dim=1)
         conv_up1=self.conv_up1(merge1)
-
+        
         up2=self.up2(conv_up1)
         merge2=torch.cat([conv3,up2],dim=1)
         conv_up2=self.conv_up2(merge2)
@@ -71,3 +74,6 @@ class Unet_decoder_idea3_se(nn.Module):
 
         return output
 
+if __name__=='__main__':
+    model=Unet_decoder_idea3_se_v2(1)
+    summary(model,(3,224,224))

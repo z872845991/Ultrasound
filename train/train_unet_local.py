@@ -24,7 +24,8 @@ class train_model_local():
     def summarys(self,input_size):
         summary(self.model,input_size=input_size)
     def fit(self,file1,file2,path3,hard):
-        #bigiou=0
+        bigiou=0
+        fromnum=0
         for epoch in range(self.num_epochs):
             print("Start epoch %d"%epoch)
             for phase in ['train','val']:
@@ -91,6 +92,12 @@ class train_model_local():
                         path3=path3+'_%d.pth'%epoch
                         torch.save(self.model.state_dict(),path3)
                     print("test: miou: %5f , midce: %5f "%(100.0*te_avgmeter1.avg,100.0*te_avgmeter2.avg))
+                    if bigiou<(100.0*te_avgmeter1.avg):
+                        bigiou=100.0*te_avgmeter1.avg
+                        fromnum=epoch
+                        
                     with open(file2,'a+') as fileval:
                         fileval.write(" ACC:%.4f  PPV:%.4f  TNR:%.4f  TPR:%.4f  F1:%.4f  miou:%.4f maxiou:%.4f miniou:%.4f  mdice:%.4f maxdice:%.4f mindice:%.4f iou1:%.4f iou2:%.4f iou3:%.4f iou4:%.4f iou5:%.4f iou6:%.4f iou7:%.4f iou8:%.4f dice1:%.4f dice2:%.4f dice3:%.4f dice4:%.4f dice5:%.4f dice6:%.4f dice7:%.4f dice8:%.4f" % (
                             te_avgmeter3.avg, te_avgmeter4.avg, te_avgmeter5.avg, te_avgmeter6.avg, te_avgmeter7.avg, te_avgmeter1.avg, te_avgmeter1.max, te_avgmeter1.min, te_avgmeter2.avg, te_avgmeter2.max,te_avgmeter2.min, te_avgmeter1.first, te_avgmeter1.second, te_avgmeter1.third, te_avgmeter1.forth, te_avgmeter1.fifth, te_avgmeter1.sixth, te_avgmeter1.seventh, te_avgmeter1.eighth, te_avgmeter2.first, te_avgmeter2.second, te_avgmeter2.third, te_avgmeter2.forth, te_avgmeter2.fifth, te_avgmeter2.sixth, te_avgmeter2.seventh, te_avgmeter2.eighth) + '\n')
+        print("The max Mean IOU is:%.4f"%bigiou)
+        print("The number epoch is:%d"%fromnum)
