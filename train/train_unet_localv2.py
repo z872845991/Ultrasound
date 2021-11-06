@@ -4,13 +4,13 @@ import torch.nn as nn
 from tools.metrics import dice_coef,iou_score,get_accuracy,get_precision,get_specificity,get_recall,get_F1
 from tools.utils import AverageMeter
 from torchsummary import summary
-class train_model_local():
+class train_model_localv2():
     """Usage:
         init:model
         compile:dataloaders,criterion,optimizer,num_epochs,batch_size,train_path,val_path,device='cpu'
     """
     def __init__(self,model):
-        super(train_model_local).__init__()
+        super(train_model_localv2).__init__()
         self.model=model
     def compile(self,dataloaders,criterion,optimizer,num_epochs,batch_size,train_path,val_path,device='cpu'):
         self.criterion=criterion
