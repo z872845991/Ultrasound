@@ -78,7 +78,7 @@ class Autofocus_conv(nn.Module):
         x = self.relu(x21)
         return x
 
-class Unet(nn.Module):
+class Autofocus_unet_v2(nn.Module):
     def __init__(self,n_class):
         super().__init__()
         self.conv_down1=Double_conv(3,64)
@@ -138,5 +138,5 @@ class Unet(nn.Module):
         return output
 
 if __name__=='__main__':
-    model=Unet(1)
+    model=Autofocus_unet_v2(1)
     summary(model,(3,224,224))

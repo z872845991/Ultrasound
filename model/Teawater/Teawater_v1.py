@@ -171,5 +171,5 @@ class Teawater_v1(nn.Module):
         out = self.out(deco1)
         return out
 if __name__=='__main__':
-    model=Teawater(1)
+    model=Teawater_v1(1)
     print('# generator parameters:', sum(param.numel() for param in model.parameters()))

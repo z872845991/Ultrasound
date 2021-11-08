@@ -134,9 +134,9 @@ class Attnblock(nn.Module):
         return satt
 
 
-class Teawater_v1(nn.Module):
+class Teawater_v2(nn.Module):
     def __init__(self, n_class=1):
-        super(Teawater_v1, self).__init__()
+        super(Teawater_v2, self).__init__()
         self.pool = nn.MaxPool2d(2)
 
         self.down_conv1 = En_blocks(3, 64)
@@ -170,5 +170,5 @@ class Teawater_v1(nn.Module):
         out = self.out(deco1)
         return out
 if __name__=='__main__':
-    model=Teawater(1)
+    model=Teawater_v2(1)
     print('# generator parameters:', sum(param.numel() for param in model.parameters()))
