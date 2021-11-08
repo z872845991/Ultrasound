@@ -1,8 +1,10 @@
+import sys
+sys.path.append('D:/Onedrive/Github/Ultrasound')
 import torch
 from torch import nn
 import torch.nn.functional as F
 from model.CBAM.cbam import CBAM
-
+from torchsummary import summary
 class DoubleConv(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(DoubleConv, self).__init__()
@@ -99,8 +101,9 @@ def _upsample_like(src,tar):
 
 
 if __name__=='__main__':
-    a = torch.randn((1,3,512,512)).cuda()
-    model = DP_Unet(3,1).cuda()
+    a = torch.randn((1,3,512,512))
+    model = DP_Unet(3,1)
+    summary(model,(3,224,224))
     b = model(a)[0]
     print(b.shape)
 
