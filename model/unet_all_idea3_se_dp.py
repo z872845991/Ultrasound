@@ -7,13 +7,12 @@
 # Estimated Total Size (MB): 1005.77
 # ----------------------------------------------------------------
 
-import sys
-sys.path.append('D:/Onedrive/Github/Ultrasound')
+# import sys
+# sys.path.append('D:/Onedrive/Github/Ultrasound')
 import torch
 import torch.nn as nn
 from model.inception_SE_block import Incpetion_SE_block,Incpetion_SE_block_decoder
 from torchsummary import summary
-import torch.nn.functional as F
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
         nn.Conv2d(in_channels,out_channels,3,padding=1),
@@ -49,12 +48,7 @@ class Unet_all_idea3_se(nn.Module):
 
         self.conv_out=nn.Conv2d(64,n_class,1)
 
-        self.dp_conv4=nn.Conv2d(512,1,1)
-        self.dp_conv3=nn.Conv2d(256,1,1)
-        self.dp_conv2=nn.Conv2d(128,1,1)
-        self.dp_out=nn.Conv2d(4,1,1)
     def forward(self,input):
-        b,c,h,w=input.size()
         conv1=self.conv_down1(input)
         input=self.maxpool(conv1)
 
@@ -72,30 +66,22 @@ class Unet_all_idea3_se(nn.Module):
         up1=self.up1(conv5)
         merge1=torch.cat([conv4,up1],dim=1)
         conv_up1=self.conv_up1(merge1)
-        dp4=self.dp_conv4(conv_up1)
-        dp4=F.upsample(dp4, size=(h,w), mode='bilinear')
 
         up2=self.up2(conv_up1)
         merge2=torch.cat([conv3,up2],dim=1)
         conv_up2=self.conv_up2(merge2)
-        dp3=self.dp_conv3(conv_up2)
-        dp3=F.upsample(dp3, size=(h,w), mode='bilinear')
 
         up3=self.up3(conv_up2)
         merge3=torch.cat([conv2,up3],dim=1)
         conv_up3=self.conv_up3(merge3)
-        dp2=self.dp_conv2(conv_up3)
-        dp2=F.upsample(dp2, size=(h,w), mode='bilinear')
 
         up4=self.up4(conv_up3)
         merge4=torch.cat([conv1,up4],dim=1)
         conv_up4=self.conv_up4(merge4)
         output=self.conv_out(conv_up4)
 
-        conv_dp=torch.cat([dp4,dp3,dp2,output],dim=1)
-        output=self.dp_out(conv_dp)
         return output
 
 if __name__=='__main__':
-    model=Unet_all_idea3_se(1,decay=4)
+    model=Unet_all_idea3_se(1)
     summary(model,(3,224,224))

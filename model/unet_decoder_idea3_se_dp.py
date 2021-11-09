@@ -1,18 +1,10 @@
 # -*- coding: utf-8 -*-
-
-# ----------------------------------------------------------------
-# Input size (MB): 0.57
-# Forward/backward pass size (MB): 813.51
-# Params size (MB): 191.69
-# Estimated Total Size (MB): 1005.77
-# ----------------------------------------------------------------
-
 import sys
-sys.path.append('D:/Onedrive/Github/Ultrasound')
+sys.path.append("D:\\Onedrive\\Github\\Ultrasound")
 import torch
 import torch.nn as nn
-from model.inception_SE_block import Incpetion_SE_block,Incpetion_SE_block_decoder
-from torchsummary import summary
+from torchsummary.torchsummary import summary
+from model.inception_SE_block import Incpetion_SE_block_decoder
 import torch.nn.functional as F
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
@@ -23,15 +15,15 @@ def double_conv(in_channels,out_channels):
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
-class Unet_all_idea3_se(nn.Module):
+class Unet_decoder_idea3_se_dp(nn.Module):
     def __init__(self,n_class,decay=2):
         super().__init__()
 
         self.conv_down1=double_conv(3,64)
-        self.conv_down2=Incpetion_SE_block(64,decay)
-        self.conv_down3=Incpetion_SE_block(128,decay)
-        self.conv_down4=Incpetion_SE_block(256,decay)
-        self.conv_down5=Incpetion_SE_block(512,decay)
+        self.conv_down2=double_conv(64,128)
+        self.conv_down3=double_conv(128,256)
+        self.conv_down4=double_conv(256,512)
+        self.conv_down5=double_conv(512,1024)
 
         self.maxpool=nn.MaxPool2d(2)
 
@@ -68,7 +60,6 @@ class Unet_all_idea3_se(nn.Module):
         input=self.maxpool(conv4)
 
         conv5=self.conv_down5(input)
-
         up1=self.up1(conv5)
         merge1=torch.cat([conv4,up1],dim=1)
         conv_up1=self.conv_up1(merge1)
@@ -94,8 +85,9 @@ class Unet_all_idea3_se(nn.Module):
 
         conv_dp=torch.cat([dp4,dp3,dp2,output],dim=1)
         output=self.dp_out(conv_dp)
+        
         return output
 
 if __name__=='__main__':
-    model=Unet_all_idea3_se(1,decay=4)
+    model=Unet_decoder_idea3_se_dp(1,4)
     summary(model,(3,224,224))

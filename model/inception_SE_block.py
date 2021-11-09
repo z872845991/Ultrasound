@@ -10,21 +10,21 @@ def conv(in_channels,out_channels,kernel=3,pad=1):
         nn.ReLU(inplace=True)
     )
 class Incpetion_SE_block(nn.Module):
-    def __init__(self,in_channel):
+    def __init__(self,in_channel,decay=2):
         super().__init__()
 
-        self.conv1=conv(in_channel,in_channel//2,1,0)
-        self.conv11=conv(in_channel//2,in_channel//2)
-        self.conv21=conv(in_channel//2,in_channel//2)
-        self.conv31=conv(in_channel//2,in_channel//2)
-        self.conv12=conv(in_channel//2,in_channel//2)
-        self.conv32=conv(in_channel//2,in_channel//2)
-        self.conv33=conv(in_channel//2,in_channel//2)
-        l=in_channel//2*3
+        self.conv1=conv(in_channel,in_channel//decay,1,0)
+        self.conv11=conv(in_channel//decay,in_channel//decay)
+        self.conv21=conv(in_channel//decay,in_channel//decay)
+        self.conv31=conv(in_channel//decay,in_channel//decay)
+        self.conv12=conv(in_channel//decay,in_channel//decay)
+        self.conv32=conv(in_channel//decay,in_channel//decay)
+        self.conv33=conv(in_channel//decay,in_channel//decay)
+        l=in_channel//decay*3
         r=in_channel*2
         self.conve=conv(l,r)
 
-        self.se=SELayer(in_channel//2)
+        self.se=SELayer(in_channel//decay)
     
     def forward(self,input):
         input=self.conv1(input)
@@ -55,21 +55,21 @@ class Incpetion_SE_block(nn.Module):
 
 
 class Incpetion_SE_block_decoder(nn.Module):
-    def __init__(self,in_channel):
+    def __init__(self,in_channel,decay=2):
         super().__init__()
 
-        self.conv1=conv(in_channel,in_channel//2,1,0)
-        self.conv11=conv(in_channel//2,in_channel//2)
-        self.conv21=conv(in_channel//2,in_channel//2)
-        self.conv31=conv(in_channel//2,in_channel//2)
-        self.conv12=conv(in_channel//2,in_channel//2)
-        self.conv32=conv(in_channel//2,in_channel//2)
-        self.conv33=conv(in_channel//2,in_channel//2)
-        l=(in_channel//2)*3
+        self.conv1=conv(in_channel,in_channel//decay,1,0)
+        self.conv11=conv(in_channel//decay,in_channel//decay)
+        self.conv21=conv(in_channel//decay,in_channel//decay)
+        self.conv31=conv(in_channel//decay,in_channel//decay)
+        self.conv12=conv(in_channel//decay,in_channel//decay)
+        self.conv32=conv(in_channel//decay,in_channel//decay)
+        self.conv33=conv(in_channel//decay,in_channel//decay)
+        l=(in_channel//decay)*3
         r=in_channel//2
         self.conve=conv(l,r)
 
-        self.se=SELayer(in_channel//2)
+        self.se=SELayer(in_channel//decay)
     
     def forward(self,input):
         input=self.conv1(input)
