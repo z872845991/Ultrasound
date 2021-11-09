@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchsummary
+from torchsummary.torchsummary import summary
 
 '''
 去掉En_block的dropout
@@ -34,7 +35,9 @@ class Outblock(nn.Module):
     def __init__(self, in_channel):
         super(Outblock, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channel, 3, 3, padding=1)
+            nn.Conv2d(in_channel, 3, 3, padding=1),
+            nn.BatchNorm2d(3),
+            nn.ReLU(inplace=True)
         )
         self.out = nn.Sequential(
             nn.Conv2d(3, 1, 3, padding=1)
@@ -51,10 +54,13 @@ class Center(nn.Module):
         self.pool1 = nn.MaxPool2d(16)
         self.pool2 = nn.MaxPool2d(8)
         self.pool3 = nn.MaxPool2d(4)
-        self.conv1 = nn.Conv2d(960, 1, 3, padding=1)
+        self.conv1 =nn.Sequential(
+            nn.Conv2d(960, 1, 3, padding=1),
+            nn.BatchNorm2d(1),
+            nn.Sigmoid()
+        )
         self.conv2=nn.Conv2d(960,1024,3,padding=1)
-    def forward(self, x):
-        x1, x2, x3, x4 = x
+    def forward(self, x1,x2,x3,x4):
         pool1 = self.pool1(x1)
         pool2 = self.pool2(x2)
         pool3 = self.pool3(x3)
@@ -106,8 +112,7 @@ class Spaceatt(nn.Module):
         )
         self.softmax = nn.Softmax(in_channel)
 
-    def forward(self, x):
-        low, high = x
+    def forward(self, low,high):
         b, c, h, w = low.size()
         Q = self.Q(low)
         K = self.K(low)
@@ -125,13 +130,12 @@ class Attnblock(nn.Module):
         self.catt = Channelatt(out_channel)
         self.satt = Spaceatt(out_channel)
 
-    def forward(self, x):
-        high, low = x
+    def forward(self, high,low):
         up = self.upsample(high)
         concat = torch.cat([up, low], dim=1)
         point = self.conv(concat)
         catt = self.catt(point)
-        satt = self.satt([point, catt])
+        satt = self.satt(point, catt)
         return satt
 
 
@@ -163,13 +167,14 @@ class Teawater_v3(nn.Module):
         pool3 = self.pool(down3)
         down4 = self.down_conv4(pool3)
         pool4 = self.pool(down4)
-        center = self.center([down1, down2, down3, pool4])
-        deco4 = self.up_conv4([center, down4])
-        deco3 = self.up_conv3([deco4, down3])
-        deco2 = self.up_conv2([deco3, down2])
-        deco1 = self.up_conv1([deco2, down1])
+        center = self.center(down1, down2, down3, pool4)
+        deco4 = self.up_conv4(center,down4)
+        deco3 = self.up_conv3(deco4, down3)
+        deco2 = self.up_conv2(deco3, down2)
+        deco1 = self.up_conv1(deco2, down1)
         out = self.out(deco1)
         return out
 if __name__=='__main__':
     model=Teawater_v3(1)
+    summary(model,(3,224,224))
     print('# generator parameters:', sum(param.numel() for param in model.parameters()))
