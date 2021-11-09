@@ -7,8 +7,8 @@
 # Estimated Total Size (MB): 1005.77
 # ----------------------------------------------------------------
 
-import sys
-sys.path.append('D:/Onedrive/Github/Ultrasound')
+# import sys
+# sys.path.append('D:/Onedrive/Github/Ultrasound')
 import torch
 import torch.nn as nn
 from model.inception_SE_block import Incpetion_SE_block,Incpetion_SE_block_decoder
@@ -23,7 +23,7 @@ def double_conv(in_channels,out_channels):
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
-class Unet_all_idea3_se(nn.Module):
+class Unet_all_idea3_se_dp(nn.Module):
     def __init__(self,n_class,decay=2):
         super().__init__()
 
@@ -97,5 +97,5 @@ class Unet_all_idea3_se(nn.Module):
         return output
 
 if __name__=='__main__':
-    model=Unet_all_idea3_se(1,decay=4)
+    model=Unet_all_idea3_se_dp(1,decay=4)
     summary(model,(3,224,224))
