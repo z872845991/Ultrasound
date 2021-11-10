@@ -97,5 +97,5 @@ class Unet_all_idea3_se_dp(nn.Module):
         return output
 
 if __name__=='__main__':
-    model=Unet_all_idea3_se_dp(1,decay=4)
+    model=Unet_all_idea3_se_dp(1,4)
     summary(model,(3,224,224))
