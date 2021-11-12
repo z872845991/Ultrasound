@@ -48,7 +48,7 @@ class train_model_localv2():
                         dice=dice_coef(outputs,labels)
                         avgmeter1.update(iou, self.batch_size[phase])
                         avgmeter2.update(dice, self.batch_size[phase])
-                    print("train: miou: %5f , midce: %5f "%(avgmeter1.avg*100.0,100.0*avgmeter2.avg))
+                    print("loss: %5f,train: miou: %5f , midce: %5f "%(epoch_loss / step,avgmeter1.avg*100.0,100.0*avgmeter2.avg))
                     with open(trainfile,'a+') as filetrain:
                         filetrain.write("epoch: %d  ,idx: %d   ,loss: %0.3f   ,miou:   %.3f,maxiou: %.3f    ,miniou: %.3f    ,mdice: %.3f   ,maxdice: %.3f   ,mindice: %.3f   " %(epoch,idx,epoch_loss / step, avgmeter1.avg, avgmeter1.max, avgmeter1.min, avgmeter2.avg, avgmeter2.max,avgmeter2.min)+'\n')
                 else:
