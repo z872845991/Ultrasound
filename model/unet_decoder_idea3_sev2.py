@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 import sys
+
 sys.path.append("D:\\Onedrive\\Github\\Ultrasound")
 import torch
 import torch.nn as nn
 from torchsummary.torchsummary import summary
+
 from model.inception_SE_block import Incpetion_SE_block_decoder
+
+
 def double_conv(in_channels,out_channels):
     return nn.Sequential(
         nn.Conv2d(in_channels,out_channels,3,padding=1),

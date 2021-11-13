@@ -2,40 +2,45 @@
 #
 import torch
 import torch.nn as nn
+
 from model.SE_layer import SELayer
-def conv(in_channels,out_channels,kernel=3,pad=1):
+
+
+def conv(in_channels, out_channels, kernel=3, pad=1):
     return nn.Sequential(
-        nn.Conv2d(in_channels,out_channels,kernel_size=kernel,padding=pad),
+        nn.Conv2d(in_channels, out_channels, kernel_size=kernel, padding=pad),
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
+
+
 class Incpetion_SE_block(nn.Module):
-    def __init__(self,in_channel,decay=2):
+    def __init__(self, in_channel, decay=2):
         super().__init__()
 
-        self.conv1=conv(in_channel,in_channel//decay,1,0)
-        self.conv11=conv(in_channel//decay,in_channel//decay)
-        self.conv21=conv(in_channel//decay,in_channel//decay)
-        self.conv31=conv(in_channel//decay,in_channel//decay)
-        self.conv12=conv(in_channel//decay,in_channel//decay)
-        self.conv32=conv(in_channel//decay,in_channel//decay)
-        self.conv33=conv(in_channel//decay,in_channel//decay)
-        l=in_channel//decay*3
-        r=in_channel*2
-        self.conve=conv(l,r)
+        self.conv1 = conv(in_channel, in_channel//decay, 1, 0)
+        self.conv11 = conv(in_channel//decay, in_channel//decay)
+        self.conv21 = conv(in_channel//decay, in_channel//decay)
+        self.conv31 = conv(in_channel//decay, in_channel//decay)
+        self.conv12 = conv(in_channel//decay, in_channel//decay)
+        self.conv32 = conv(in_channel//decay, in_channel//decay)
+        self.conv33 = conv(in_channel//decay, in_channel//decay)
+        l = in_channel//decay*3
+        r = in_channel*2
+        self.conve = conv(l, r)
 
-        self.se=SELayer(in_channel//decay)
-    
-    def forward(self,input):
-        input=self.conv1(input)
+        self.se = SELayer(in_channel//decay)
 
-        l1=self.conv11(input)
-        l2=self.conv21(input)
-        l3=self.conv31(input)
+    def forward(self, input):
+        input = self.conv1(input)
 
-        l12=self.conv12(l1)
-        l32=self.conv32(l3)
-        l33=self.conv33(l32)
+        l1 = self.conv11(input)
+        l2 = self.conv21(input)
+        l3 = self.conv31(input)
+
+        l12 = self.conv12(l1)
+        l32 = self.conv32(l3)
+        l33 = self.conv33(l32)
 
         # l1=torch.add(l1,l12)
         # l1=torch.add(l1,input)
@@ -45,42 +50,42 @@ class Incpetion_SE_block(nn.Module):
         # l3=torch.add(l3,l32)
         # l3=torch.add(l3,l33)
         # l3=torch.add(l3,input)
-        se=self.se(input)
-        l1=l12 * se.expand_as(l12)
-        l2=l2 * se.expand_as(l2)
-        l3=l33 * se.expand_as(l33)
-        l=torch.cat([l1,l2,l3],dim=1)
-        l=self.conve(l)
+        se = self.se(input)
+        l1 = l12 * se.expand_as(l12)
+        l2 = l2 * se.expand_as(l2)
+        l3 = l33 * se.expand_as(l33)
+        l = torch.cat([l1, l2, l3], dim=1)
+        l = self.conve(l)
         return l
 
 
 class Incpetion_SE_block_decoder(nn.Module):
-    def __init__(self,in_channel,decay=2):
+    def __init__(self, in_channel, decay=2):
         super().__init__()
 
-        self.conv1=conv(in_channel,in_channel//decay,1,0)
-        self.conv11=conv(in_channel//decay,in_channel//decay)
-        self.conv21=conv(in_channel//decay,in_channel//decay)
-        self.conv31=conv(in_channel//decay,in_channel//decay)
-        self.conv12=conv(in_channel//decay,in_channel//decay)
-        self.conv32=conv(in_channel//decay,in_channel//decay)
-        self.conv33=conv(in_channel//decay,in_channel//decay)
-        l=(in_channel//decay)*3
-        r=in_channel//2
-        self.conve=conv(l,r)
+        self.conv1 = conv(in_channel, in_channel//decay, 1, 0)
+        self.conv11 = conv(in_channel//decay, in_channel//decay)
+        self.conv21 = conv(in_channel//decay, in_channel//decay)
+        self.conv31 = conv(in_channel//decay, in_channel//decay)
+        self.conv12 = conv(in_channel//decay, in_channel//decay)
+        self.conv32 = conv(in_channel//decay, in_channel//decay)
+        self.conv33 = conv(in_channel//decay, in_channel//decay)
+        l = (in_channel//decay)*3
+        r = in_channel//2
+        self.conve = conv(l, r)
 
-        self.se=SELayer(in_channel//decay)
-    
-    def forward(self,input):
-        input=self.conv1(input)
+        self.se = SELayer(in_channel//decay)
 
-        l1=self.conv11(input)
-        l2=self.conv21(input)
-        l3=self.conv31(input)
+    def forward(self, input):
+        input = self.conv1(input)
 
-        l12=self.conv12(l1)
-        l32=self.conv32(l3)
-        l33=self.conv33(l32)
+        l1 = self.conv11(input)
+        l2 = self.conv21(input)
+        l3 = self.conv31(input)
+
+        l12 = self.conv12(l1)
+        l32 = self.conv32(l3)
+        l33 = self.conv33(l32)
 
         # l1=torch.add(l1,l12)
         # l1=torch.add(l1,input)
@@ -90,10 +95,10 @@ class Incpetion_SE_block_decoder(nn.Module):
         # l3=torch.add(l3,l32)
         # l3=torch.add(l3,l33)
         # l3=torch.add(l3,input)
-        se=self.se(input)
-        l1=l12 * se.expand_as(l12)
-        l2=l2 * se.expand_as(l2)
-        l3=l33 * se.expand_as(l33)
-        l=torch.cat([l1,l2,l3],dim=1)
-        l=self.conve(l)
+        se = self.se(input)
+        l1 = l12 * se.expand_as(l12)
+        l2 = l2 * se.expand_as(l2)
+        l3 = l33 * se.expand_as(l33)
+        l = torch.cat([l1, l2, l3], dim=1)
+        l = self.conve(l)
         return l
