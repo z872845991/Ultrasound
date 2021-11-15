@@ -5,23 +5,23 @@ import torchsummary
 from torchsummary.torchsummary import summary
 
 '''
-去掉En_block的dropout
+En_block使用原本Unet的双卷积
 Out_block:dropout 去掉
-Center: 采用下采样,空间注意力从conv4下采样获取，而不是融合后获取
+Center: 同En_block
 decay率默认2，尝试4
-更改注意力机制
+在space att中尝试添加se
 '''
 
 class En_blocks(nn.Module):
-    def __init__(self, in_channel, out_channel):
+    def __init__(self, in_channel, out_channel,decay=1):
         super(En_blocks, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channel, out_channel, 3, padding=1),
-            nn.BatchNorm2d(out_channel),
+            nn.Conv2d(in_channel, out_channel//decay, 3, padding=1),
+            nn.BatchNorm2d(out_channel//decay),
             nn.ReLU(inplace=True)
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(out_channel, out_channel, 3, padding=1),
+            nn.Conv2d(out_channel//decay, out_channel, 3, padding=1),
             nn.BatchNorm2d(out_channel),
             nn.ReLU(inplace=True)
         )
@@ -70,37 +70,37 @@ class Outblock(nn.Module):
 #         output = g1 * inputs
 #         return output
 
-class Center(nn.Module):
-    def __init__(self):
-        super(Center, self).__init__()
-        self.pool1 = nn.MaxPool2d(16)
-        self.pool2 = nn.MaxPool2d(8)
-        self.pool3 = nn.MaxPool2d(4)
-        self.conv1 =nn.Sequential(
-            nn.Conv2d(512, 1, 3, padding=1),
-            nn.BatchNorm2d(1),
-            nn.Sigmoid()
-        )
-        self.conv2=nn.Sequential(
-            nn.Conv2d(960,64,3,padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True)
-        )
-        self.conv3=nn.Sequential(
-            nn.BatchNorm2d(1024),
-            nn.ReLU(inplace=True)
-        )
+# class Center(nn.Module):
+#     def __init__(self):
+#         super(Center, self).__init__()
+#         self.pool1 = nn.MaxPool2d(16)
+#         self.pool2 = nn.MaxPool2d(8)
+#         self.pool3 = nn.MaxPool2d(4)
+#         self.conv1 =nn.Sequential(
+#             nn.Conv2d(512, 1, 3, padding=1),
+#             nn.BatchNorm2d(1),
+#             nn.Sigmoid()
+#         )
+#         self.conv2=nn.Sequential(
+#             nn.Conv2d(960,64,3,padding=1),
+#             nn.BatchNorm2d(64),
+#             nn.ReLU(inplace=True)
+#         )
+#         self.conv3=nn.Sequential(
+#             nn.BatchNorm2d(1024),
+#             nn.ReLU(inplace=True)
+#         )
 
-    def forward(self, x1,x2,x3,x4):
-        pool1 = self.pool1(x1)
-        pool2 = self.pool2(x2)
-        pool3 = self.pool3(x3)
-        inputs = torch.cat([pool1, pool2, pool3, x4], dim=1)
-        g1 = self.conv1(x4)
-        plus=self.conv2(inputs)
-        inputs=self.conv3(torch.cat([plus,inputs],dim=1))
-        output = g1 * inputs
-        return output
+#     def forward(self, x1,x2,x3,x4):
+#         pool1 = self.pool1(x1)
+#         pool2 = self.pool2(x2)
+#         pool3 = self.pool3(x3)
+#         inputs = torch.cat([pool1, pool2, pool3, x4], dim=1)
+#         g1 = self.conv1(x4)
+#         plus=self.conv2(inputs)
+#         inputs=self.conv3(torch.cat([plus,inputs],dim=1))
+#         output = g1 * inputs
+#         return output
 
 
 class Channelatt(nn.Module):
@@ -127,15 +127,15 @@ class Spaceatt(nn.Module):
             nn.Conv2d(in_channel, in_channel // decay, 1),
             nn.BatchNorm2d(in_channel // decay),
             nn.Conv2d(in_channel // decay, 1, 1),
-            nn.BatchNorm2d(1)
+            nn.Sigmoid()
         )
         self.K = nn.Sequential(
             nn.Conv2d(in_channel, in_channel // decay, 1),
-            nn.BatchNorm2d(in_channel // decay)
+            Channelatt(in_channel // decay)
         )
         self.V = nn.Sequential(
             nn.Conv2d(in_channel, in_channel // decay, 1),
-            nn.BatchNorm2d(in_channel // decay)
+            Channelatt(in_channel // decay)
         )
         self.sig = nn.Sequential(
             nn.Conv2d(in_channel // decay, in_channel, 1),
@@ -145,12 +145,11 @@ class Spaceatt(nn.Module):
         self.softmax = nn.Softmax(in_channel)
 
     def forward(self, low,high):
-        b, c, h, w = low.size()
         Q = self.Q(low)
         K = self.K(low)
         V = self.V(high)
         att = Q * K
-        att = att+V
+        att=att@V
         return self.sig(att)
 
 
@@ -171,17 +170,17 @@ class Attnblock(nn.Module):
         return satt+catt
 
 
-class Teawater_v4(nn.Module):
+class Teawater_v5(nn.Module):
     def __init__(self, n_class=1,decay=2):
-        super(Teawater_v4, self).__init__()
+        super(Teawater_v5, self).__init__()
         self.pool = nn.MaxPool2d(2)
 
-        self.down_conv1 = En_blocks(3, 64)
-        self.down_conv2 = En_blocks(64, 128)
-        self.down_conv3 = En_blocks(128, 256)
-        self.down_conv4 = En_blocks(256, 512)
-
-        self.center = Center()
+        self.down_conv1 = En_blocks(3, 64,decay=1)
+        self.down_conv2 = En_blocks(64, 128,decay=1)
+        self.down_conv3 = En_blocks(128, 256,decay=1)
+        self.down_conv4 = En_blocks(256, 512,decay=1)
+        self.down_conv5 = En_blocks(512, 1024,decay=1)
+        #self.center = Center()
 
         self.up_conv4 = Attnblock(1024,512,decay)
         self.up_conv3 = Attnblock(512,256,decay)
@@ -199,7 +198,9 @@ class Teawater_v4(nn.Module):
         pool3 = self.pool(down3)
         down4 = self.down_conv4(pool3)
         pool4 = self.pool(down4)
-        center = self.center(down1, down2, down3, pool4)
+        #center = self.center(down1, down2, down3, pool4)
+        center=self.down_conv5(pool4)
+
         deco4 = self.up_conv4(center,down4)
         deco3 = self.up_conv3(deco4, down3)
         deco2 = self.up_conv2(deco3, down2)
@@ -207,6 +208,6 @@ class Teawater_v4(nn.Module):
         out = self.out(deco1)
         return out
 if __name__=='__main__':
-    model=Teawater_v4(1,2)
+    model=Teawater_v5(1,2)
     summary(model,(3,224,224))
     print('# generator parameters:', sum(param.numel() for param in model.parameters()))

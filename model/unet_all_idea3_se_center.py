@@ -7,8 +7,8 @@
 # Estimated Total Size (MB): 1005.77
 # ----------------------------------------------------------------
 
-import sys
-sys.path.append('D:/Onedrive/Github/Ultrasound')
+# import sys
+# sys.path.append('D:/Onedrive/Github/Ultrasound')
 import torch
 import torch.nn as nn
 from model.inception_SE_block import Incpetion_SE_block,Incpetion_SE_block_decoder
@@ -115,5 +115,5 @@ class Unet_all_idea3_se_center(nn.Module):
         return output
 
 if __name__=='__main__':
-    model=Unet_all_idea3_se_center(1)
+    model=Unet_all_idea3_se_center(1,2)
     summary(model,(3,224,224))

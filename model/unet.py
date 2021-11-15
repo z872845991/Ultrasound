@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
+
+from torchsummary.torchsummary import summary
 sys.path.append('D:/Onedrive/Github/Ultrasound')
 import torch
 import torch.nn as nn
@@ -75,4 +77,5 @@ class Unet(nn.Module):
 if __name__=='__main__':
     a=torch.randn(1,3,512,512)
     model=Unet(1)
+    summary(model,(3,224,224))
     b=model(a)
