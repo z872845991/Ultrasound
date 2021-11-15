@@ -6,6 +6,7 @@ import torch
 import numpy as np
 from torch.autograd import Variable
 import torch.nn.functional as F
+from torchsummary import summary
 
 class Dilation_conv(nn.Module):
     def __init__(self,input_channel,output_channel,num_branches=4):
@@ -116,3 +117,6 @@ class Unet(nn.Module):
 
         return output
 
+if __name__=='__main__':
+    model=Unet(1)
+    summary(model,(3,224,224))
