@@ -14,11 +14,11 @@ def muti_bce_loss_fusion(out, d1, d2, d3,  labels_v):
 
     loss_out = bce_loss(out ,labels_v)
 
-    loss = 0.1*loss1 + 0.3*loss2 + 0.5*loss3 + loss_out
+    loss = 0.1*loss1 + 0.2*loss2 + 0.3*loss3 + 0.4*loss_out
     # print("l1: %3f, l2: %3f, l3: %3f, lout: %3f\n"%(loss1.item(),loss2.item(),loss3.item(),loss_out.item()))
 
-    return loss_out, loss
-class train_model_dp_cbam():
+    return loss
+class train_model_mutiloss():
     """Usage:
         init:model
         compile:dataloaders,criterion,optimizer,num_epochs,batch_size,train_path,val_path,device='cpu'

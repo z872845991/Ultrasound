@@ -6,9 +6,9 @@ import torch.nn as nn
 from model.SE_layer import SELayer
 
 
-def conv(in_channels, out_channels, kernel=3, pad=1,dilate=0):
+def conv(in_channels, out_channels, kernel=3, pad=1):
     return nn.Sequential(
-        nn.Conv2d(in_channels, out_channels, kernel_size=kernel, padding=pad,dilation=dilate),
+        nn.Conv2d(in_channels, out_channels, kernel_size=kernel, padding=pad),
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
