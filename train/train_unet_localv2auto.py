@@ -8,14 +8,14 @@ from tools.utils import AverageMeter
 from torchsummary import summary
 
 
-class train_model_localv2():
+class train_model_localv2auto():
     """Usage:
         init:model
         compile:dataloaders,criterion,optimizer,num_epochs,batch_size,train_path,val_path,device='cpu'
     """
 
     def __init__(self, model):
-        super(train_model_localv2).__init__()
+        super(train_model_localv2auto).__init__()
         self.model = model
 
     def compile(self, dataloaders, criterion, optimizer, num_epochs, batch_size, train_path, val_path, device='cpu'):
