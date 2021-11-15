@@ -153,4 +153,6 @@ class Autofocus_unet_v2(nn.Module):
 
 if __name__ == '__main__':
     model = Autofocus_unet_v2(1)
+    a=torch.randn(1,3,224,224)
+    b=model(a)
     summary(model, (3, 224, 224))
