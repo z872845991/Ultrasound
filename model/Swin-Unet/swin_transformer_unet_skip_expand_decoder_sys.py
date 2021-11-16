@@ -185,9 +185,6 @@ class SwinTransformerBlock(nn.Module):
             # if window size is larger than input resolution, we don't partition windows
             self.shift_size = 0
             self.window_size = min(self.input_resolution)
-
-        print(self.shift_size)
-        print(self.window_size)
         assert 0 <= self.shift_size < self.window_size, "shift_size must in 0-window_size"
 
         self.norm1 = norm_layer(dim)
@@ -750,8 +747,20 @@ class SwinTransformerSys(nn.Module):
         return flops
 
 if __name__=='__main__':
-    model=SwinTransformerSys(num_classes=1)
-    a=torch.randn(1,3,224,224)
-    b=model(a)
-    print(b.shape)
-    summary(model,(3,224,224))
+    model=SwinTransformerSys(img_size=512,
+                                patch_size=4,
+                                in_chans=3,
+                                num_classes=1,
+                                embed_dim=96,
+                                depths=[2,2,6,2],
+                                num_heads=[3,6,12,24],
+                                window_size=16,
+                                mlp_ratio=4.,
+                                qkv_bias=True,
+                                qk_scale=None,
+                                drop_rate=0.0,
+                                drop_path_rate=0.1,
+                                ape=False,
+                                patch_norm=True,
+                                use_checkpoint=False)
+    summary(model,(3,512,512))
