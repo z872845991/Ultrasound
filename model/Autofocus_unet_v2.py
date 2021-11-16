@@ -47,7 +47,7 @@ class Autofocus_conv(nn.Module):
 
         self.Bn = nn.BatchNorm2d(output_channel//2)
         self.Bn2 = nn.BatchNorm2d(output_channel)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU(inplace=False)
 
         # self.donwsample=nn.Sequential(
         #    nn.Conv2d(input_channel,output_channel,kernel_size=1),
