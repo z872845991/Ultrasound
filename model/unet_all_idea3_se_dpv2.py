@@ -9,6 +9,9 @@
 
 # import sys
 # sys.path.append('D:/Onedrive/Github/Ultrasound')
+'''
+
+'''
 import torch
 import torch.nn as nn
 from model.inception_SE_block import Incpetion_SE_block,Incpetion_SE_block_decoder
@@ -23,7 +26,7 @@ def double_conv(in_channels,out_channels):
         nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
-class Unet_all_idea3_se_dp(nn.Module):
+class Unet_all_idea3_se_dpv2(nn.Module):
     def __init__(self,n_class,decay=2):
         super().__init__()
 
@@ -52,7 +55,7 @@ class Unet_all_idea3_se_dp(nn.Module):
         self.dp_conv4=nn.Conv2d(512,1,1)
         self.dp_conv3=nn.Conv2d(256,1,1)
         self.dp_conv2=nn.Conv2d(128,1,1)
-        self.dp_out=nn.Conv2d(4,1,1)
+        #self.dp_out=nn.Conv2d(4,1,1)
     def forward(self,input):
         b,c,h,w=input.size()
         conv1=self.conv_down1(input)
@@ -90,12 +93,10 @@ class Unet_all_idea3_se_dp(nn.Module):
         up4=self.up4(conv_up3)
         merge4=torch.cat([conv1,up4],dim=1)
         conv_up4=self.conv_up4(merge4)
-        output=self.conv_out(conv_up4)
+        dp1=self.conv_out(conv_up4)
 
-        conv_dp=torch.cat([dp4,dp3,dp2,output],dim=1)
-        output=self.dp_out(conv_dp)
-        return output
+        return dp4,dp3,dp2,dp1
 
 if __name__=='__main__':
-    model=Unet_all_idea3_se_dp(1,4)
+    model=Unet_all_idea3_se_dpv2(1,4)
     summary(model,(3,224,224))
