@@ -57,7 +57,6 @@ class Autofocus_conv(nn.Module):
         att = self.relu(self.convatt11(x))
         att = self.convatt12(att)
         att = F.softmax(att, dim=1)
-
         x11 = self.conv11(x)
         x12 = self.conv12(x)
         x13 = self.conv13(x)
@@ -98,21 +97,21 @@ class Autofocus_unet_v2(nn.Module):
         self.conv_down2 = Double_conv(64, 128)
         self.conv_down3 = Double_conv(128, 256)
         self.conv_down4 = Double_conv(256, 512)
-        self.conv_down5 = Double_conv(512, 1024)
+        self.conv_down5 = Autofocus_conv(512, 1024)
 
         self.maxpool = nn.MaxPool2d(2)
 
         self.up1 = nn.ConvTranspose2d(1024, 512, 2, stride=2)
-        self.conv_up1 = Autofocus_conv(1024, 512)
+        self.conv_up1 = Double_conv(1024, 512)
 
         self.up2 = nn.ConvTranspose2d(512, 256, 2, stride=2)
-        self.conv_up2 = Autofocus_conv(512, 256)
+        self.conv_up2 = Double_conv(512, 256)
 
         self.up3 = nn.ConvTranspose2d(256, 128, 2, stride=2)
-        self.conv_up3 = Autofocus_conv(256, 128)
+        self.conv_up3 = Double_conv(256, 128)
 
         self.up4 = nn.ConvTranspose2d(128, 64, 2, stride=2)
-        self.conv_up4 = Autofocus_conv(128, 64)
+        self.conv_up4 = Double_conv(128, 64)
 
         self.conv_out = nn.Conv2d(64, n_class, 1)
 
@@ -153,6 +152,4 @@ class Autofocus_unet_v2(nn.Module):
 
 if __name__ == '__main__':
     model = Autofocus_unet_v2(1)
-    a=torch.randn(1,3,224,224)
-    b=model(a)
     summary(model, (3, 224, 224))

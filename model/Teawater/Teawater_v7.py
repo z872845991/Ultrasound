@@ -5,11 +5,12 @@ import torchsummary
 from torchsummary.torchsummary import summary
 
 '''
-En_block使用原本Unet的双卷积,加上reduction为8的se模块
+En_block使用原本Unet的双卷积
 Out_block:dropout 去掉,双卷积，最后加入sigmoid
 Center: 同En_block
 decay率默认2，尝试4
 在spaceatt中尝试添加se
+attnblock中输出变为satt而不是catt
 '''
 
 class En_blocks(nn.Module):
@@ -25,13 +26,11 @@ class En_blocks(nn.Module):
             nn.BatchNorm2d(out_channel),
             nn.ReLU(inplace=True)
         )
-        self.channelatt=Channelatt(out_channel,8)
 
     def forward(self, x):
         conv1 = self.conv1(x)
         conv2 = self.conv2(conv1)
-        out=self.channelatt(conv2)
-        return out
+        return conv2
 
 
 # class Outblock(nn.Module):
@@ -142,6 +141,7 @@ class Spaceatt(nn.Module):
             nn.Conv2d(in_channel, in_channel // decay, 1),
             nn.BatchNorm2d(in_channel // decay),
             nn.Conv2d(in_channel // decay, 1, 1),
+            nn.Sigmoid
         )
         self.K = nn.Sequential(
             nn.Conv2d(in_channel, in_channel // decay, 1),
@@ -181,7 +181,7 @@ class Attnblock(nn.Module):
         point = self.conv(concat)
         catt = self.catt(point)
         satt = self.satt(point, catt)
-        return satt+catt
+        return satt
 
 
 class Teawater_v6(nn.Module):
