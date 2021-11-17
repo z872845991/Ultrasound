@@ -12,6 +12,7 @@ class train_model_localv2():
     """Usage:
         init:model
         compile:dataloaders,criterion,optimizer,num_epochs,batch_size,train_path,val_path,device='cpu'
+        fit:save_trainfile,save_testfile,save_temp_checkpoints,save_hard_seg_pic,save_checkpoints_folder
     """
 
     def __init__(self, model):
@@ -34,6 +35,8 @@ class train_model_localv2():
     def fit(self, trainfile, testfile, tmpcheckfile, hardfile, checkfile):
         bigiou = 0
         fromnum = 0
+        bigdice = 0
+        fromnumd = 0
         for epoch in range(self.num_epochs):
             print("Start epoch %d" % epoch)
             for phase in ['train', 'val']:
@@ -108,10 +111,14 @@ class train_model_localv2():
                         fromnum = epoch
                         savepth = tmpcheckfile+'_%d.pth' % epoch
                         torch.save(self.model.state_dict(), savepth)
+                    if bigdice < (100.0*te_avgmeter2.avg):
+                        bigdice = 100.0*te_avgmeter2.avg
+                        fromnumd = epoch
+                        if fromnum != fromnumd:
+                            savepth1 = tmpcheckfile+'_%d.pth' % epoch
+                            torch.save(self.model.state_dict(), savepth1)
                     with open(testfile, 'a+') as fileval:
-                        fileval.write("ACC: %5f,PPV: %5f,TNR: %5f,TPR: %5f,F1: %5f,miou: %5f,maxiou: %5f,miniou: %5f,mdice: %5f,\
-                        maxdice: %5f,mindice: %5f,iou1: %5f,iou2: %5f,iou3: %5f,iou4: %5f,iou5: %5f,iou6: %5f,iou7: %5f,iou8: %5f,\
-                        dice1: %5f,dice2: %5f,dice3: %5f,dice4: %5f,dice5: %5f,dice6: %5f,dice7: %5f,dice8: %5f" % (
+                        fileval.write("ACC: %5f,PPV: %5f,TNR: %5f,TPR: %5f,F1: %5f,miou: %5f,maxiou: %5f,miniou: %5f,mdice: %5f,maxdice: %5f,mindice: %5f,iou1: %5f,iou2: %5f,iou3: %5f,iou4: %5f,iou5: %5f,iou6: %5f,iou7: %5f,iou8: %5f,dice1: %5f,dice2: %5f,dice3: %5f,dice4: %5f,dice5: %5f,dice6: %5f,dice7: %5f,dice8: %5f" % (
                             te_avgmeter3.avg*100.0, te_avgmeter4.avg*100.0, te_avgmeter5.avg *
                             100.0, te_avgmeter6.avg*100.0, te_avgmeter7.avg*100.0, te_avgmeter1.avg*100.0,
                             te_avgmeter1.max*100.0, te_avgmeter1.min*100.0, te_avgmeter2.avg *
@@ -121,9 +128,17 @@ class train_model_localv2():
                             te_avgmeter1.seventh*100.0, te_avgmeter1.eighth*100.0, te_avgmeter2.first *
                             100.0, te_avgmeter2.second*100.0, te_avgmeter2.third*100.0,
                             te_avgmeter2.forth*100.0, te_avgmeter2.fifth*100.0, te_avgmeter2.sixth*100.0, te_avgmeter2.seventh*100.0, te_avgmeter2.eighth*100.0) + '\n')
+        ## 将最大的miou和mdice从临时文件夹移走      
         oldname = tmpcheckfile+'_%d.pth' % fromnum
         newname = checkfile+'_%d.pth' % fromnum
         os.rename(oldname, newname)
+
+        oldname2 = tmpcheckfile+'_%d.pth' % fromnumd
+        newname2 = checkfile+'_%d.pth' % fromnumd
+        os.rename(oldname2, newname2)
+
         print("The max Mean IOU is:%.4f" % bigiou)
         print("The number epoch is:%d" % fromnum)
+        print("The max Mean Dice is:%.4f" % bigdice)
+        print("The number epoch is:%d" % fromnumd)        
         return fromnum

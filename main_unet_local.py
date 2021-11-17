@@ -12,7 +12,7 @@ from model.idea3 import Idea3
 from model.unet import Unet
 from model.unet_res_myself import Unet_res_myself
 from model.unet_res_myself_pool_connect_o_C import Unet_res_myself_pool
-from train.train_unet_local import train_model_local
+from train.train_unet_localv2 import train_model_localv2
 device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 num_epoch=80
@@ -48,7 +48,7 @@ model.to(device)
 criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.Adam(model.parameters())
 
-train1=train_model_local(model)
+train1=train_model_localv2(model)
 train1.compile(dataloaders,criterion,optimizer,num_epoch,batch_size,train_path,val_path,device)
 train1.fit('result2/train/train_7m_unet.txt','result2/val/val_7m_unet.txt')
 
@@ -57,7 +57,7 @@ train1.fit('result2/train/train_7m_unet.txt','result2/val/val_7m_unet.txt')
 model2=Unet_res_myself_pool(n_class=1)
 model2.to(device)
 
-train2=train_model_local(model2)
+train2=train_model_localv2(model2)
 train2.compile(dataloaders,criterion,optimizer,num_epoch,batch_size,train_path,val_path,device)
 train2.fit('result2/train/train_7m_unet_res_myself_pool.txt','result2/val/val_7m_unet_res_myself_pool.txt')
 
@@ -65,6 +65,6 @@ train2.fit('result2/train/train_7m_unet_res_myself_pool.txt','result2/val/val_7m
 model3=Idea3(n_class=1)
 model3.to(device)
 
-train3=train_model_local(model3)
+train3=train_model_localv2(model3)
 train3.compile(dataloaders,criterion,optimizer,num_epoch,batch_size,train_path,val_path,device)
 train3.fit('result2/train/train_7m_Idea3.txt','result2/val/val_7m_Idea3.txt')
