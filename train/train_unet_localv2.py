@@ -60,7 +60,7 @@ class train_model_localv2():
                         dice = dice_coef(outputs, labels)
                         avgmeter1.update(iou, self.batch_size[phase])
                         avgmeter2.update(dice, self.batch_size[phase])
-                    print("loss: %5f,train: miou: %5f , midce: %5f " % (
+                    print("loss: %5f \n train: miou: %5f , midce: %5f " % (
                         epoch_loss / step, avgmeter1.avg*100.0, 100.0*avgmeter2.avg))
                     with open(trainfile, 'a+') as filetrain:
                         filetrain.write("epoch: %d  ,idx: %d   ,loss: %5f   ,miou:   %5f,maxiou: %5f    ,miniou: %5f    ,mdice: %5f   ,maxdice: %5f   ,mindice: %5f   " % (
@@ -77,7 +77,7 @@ class train_model_localv2():
                     te_avgmeter7 = AverageMeter()
                     epoch_loss = 0
                     with torch.no_grad():
-                        for idx, data in enumerate(tqdm(self.dataloaders[phase])):
+                        for idx, data in enumerate(self.dataloaders[phase]):
                             inputs, labels = data[0].to(
                                 self.device), data[1].to(self.device)
                             z = data[2]

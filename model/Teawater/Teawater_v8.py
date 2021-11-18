@@ -6,7 +6,7 @@ from torchsummary.torchsummary import summary
 
 '''
 En_block使用原本Unet的双卷积,加上reduction为8的se模块
-Out_block:dropout 去掉,双卷积，最后加入sigmoid
+Out_block:dropout 去掉,双卷积，最后加入sigmoid,尝试知，加入sigmoid后会极低
 Center: 同En_block
 decay率默认2，尝试4
 
@@ -56,7 +56,6 @@ class Outblock(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channel//2,1,3,padding=1),
             nn.ReLU(inplace=True),
-            nn.Sigmoid()
         )
     def forward(self, x):
         conv1 = self.conv1(x)
@@ -179,8 +178,8 @@ class Attnblock(nn.Module):
         point = self.conv(concat)
         catt = self.catt(point)
         satt = self.satt(point, catt)
-        return satt+catt
-
+        # return satt+catt
+        return satt
 
 class Teawater_v8(nn.Module):
     def __init__(self, n_class=1,decay=2):
