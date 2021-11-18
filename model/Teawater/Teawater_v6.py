@@ -6,7 +6,7 @@ from torchsummary.torchsummary import summary
 
 '''
 En_block使用原本Unet的双卷积,加上reduction为8的se模块
-Out_block:dropout 去掉,双卷积，最后加入sigmoid,尝试知，加入sigmoid后会极低
+Out_block:dropout 去掉,双卷积，最后加入sigmoid,尝试知，加入sigmoid后会极低,训练代码错误，sigmoid待验证
 Center: 同En_block
 decay率默认2，尝试4
 在spaceatt中尝试添加se
