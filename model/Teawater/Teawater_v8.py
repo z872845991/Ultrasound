@@ -55,7 +55,6 @@ class Outblock(nn.Module):
             nn.BatchNorm2d(in_channel//2),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channel//2,1,3,padding=1),
-            nn.ReLU(inplace=True),
         )
     def forward(self, x):
         conv1 = self.conv1(x)

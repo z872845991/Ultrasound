@@ -6,7 +6,7 @@ from torchsummary.torchsummary import summary
 
 '''
 En_block使用原本Unet的双卷积
-Out_block:dropout 去掉,双卷积，最后加入sigmoid
+Out_block:dropout 去掉,双卷积，最后加入sigmoid,尝试知，加入sigmoid后会极低
 Center: 同En_block
 decay率默认2，尝试4
 在spaceatt中尝试添加se
@@ -56,8 +56,6 @@ class Outblock(nn.Module):
             nn.BatchNorm2d(in_channel//2),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channel//2,1,3,padding=1),
-            nn.ReLU(inplace=True),
-            nn.Sigmoid()
         )
     def forward(self, x):
         conv1 = self.conv1(x)
