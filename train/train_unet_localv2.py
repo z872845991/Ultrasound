@@ -6,7 +6,7 @@ from tools.metrics import (dice_coef, get_accuracy, get_F1, get_precision,
                            get_recall, get_specificity, iou_score)
 from tools.utils import AverageMeter
 from torchsummary import summary
-
+from tqdm import tqdm
 
 class train_model_localv2():
     """Usage:
@@ -46,7 +46,7 @@ class train_model_localv2():
                     epoch_loss = 0
                     avgmeter1 = AverageMeter()
                     avgmeter2 = AverageMeter()
-                    for idx, data in enumerate(self.dataloaders[phase]):
+                    for idx, data in enumerate(tqdm(self.dataloaders[phase])):
                         inputs, labels = data[0].to(
                             self.device), data[1].to(self.device)
                         outputs = self.model(inputs)
@@ -77,7 +77,7 @@ class train_model_localv2():
                     te_avgmeter7 = AverageMeter()
                     epoch_loss = 0
                     with torch.no_grad():
-                        for idx, data in enumerate(self.dataloaders[phase]):
+                        for idx, data in enumerate(tqdm(self.dataloaders[phase])):
                             inputs, labels = data[0].to(
                                 self.device), data[1].to(self.device)
                             z = data[2]
