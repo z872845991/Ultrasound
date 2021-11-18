@@ -25,13 +25,11 @@ class En_blocks(nn.Module):
             nn.BatchNorm2d(out_channel),
             nn.ReLU(inplace=True)
         )
-        self.channelatt=Channelatt(out_channel,8)
 
     def forward(self, x):
         conv1 = self.conv1(x)
         conv2 = self.conv2(conv1)
-        out=self.channelatt(conv2)
-        return out
+        return conv2
 
 
 # class Outblock(nn.Module):
@@ -156,15 +154,15 @@ class Spaceatt(nn.Module):
             nn.BatchNorm2d(in_channel),
             nn.ReLU(inplace=True)
         )
-        self.softmax = nn.Softmax(in_channel)
 
     def forward(self, low,high):
         Q = self.Q(low)
         K = self.K(low)
         V = self.V(high)
         att = Q * K
-        att=att@V
-        return self.sig(att)
+        att=att@V 
+        att=F.softmax(self.sig(att),dim=1)
+        return att
 
 
 class Attnblock(nn.Module):
