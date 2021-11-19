@@ -9,7 +9,7 @@ En_block使用原本Unet的双卷积,加上reduction为8的se模块
 Out_block:dropout 去掉,双卷积，最后加入sigmoid,尝试知，加入sigmoid后会极低
 Center: 同En_block
 decay率默认2，尝试4
-
+spaceatt中添加se，并且在输出前加上softmax
 '''
 
 class En_blocks(nn.Module):
@@ -25,11 +25,12 @@ class En_blocks(nn.Module):
             nn.BatchNorm2d(out_channel),
             nn.ReLU(inplace=True)
         )
-
+        self.channelatt=Channelatt(out_channel,8)
     def forward(self, x):
         conv1 = self.conv1(x)
         conv2 = self.conv2(conv1)
-        return conv2
+        out=self.channelatt(conv2)
+        return out
 
 
 # class Outblock(nn.Module):
@@ -141,11 +142,11 @@ class Spaceatt(nn.Module):
         )
         self.K = nn.Sequential(
             nn.Conv2d(in_channel, in_channel // decay, 1),
-            nn.BatchNorm2d(in_channel // decay),
+            Channelatt(in_channel // decay)
         )
         self.V = nn.Sequential(
             nn.Conv2d(in_channel, in_channel // decay, 1),
-            nn.BatchNorm2d(in_channel // decay),
+            Channelatt(in_channel // decay)
         )
         self.sig = nn.Sequential(
             nn.Conv2d(in_channel // decay, in_channel, 1),
