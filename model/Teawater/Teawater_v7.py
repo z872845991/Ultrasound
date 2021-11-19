@@ -199,7 +199,7 @@ class Teawater_v7(nn.Module):
         self.up_conv1 = Attnblock(128,64,decay)
 
         self.out = Outblock(64)
-        self.sigmoid=nn.Sigmoid()
+        #self.sigmoid=nn.Sigmoid()
     def forward(self, inputs):
         down1 = self.down_conv1(inputs)
         pool1 = self.pool(down1)
@@ -217,7 +217,7 @@ class Teawater_v7(nn.Module):
         deco2 = self.up_conv2(deco3, down2)
         deco1 = self.up_conv1(deco2, down1)
         out = self.out(deco1)
-        out=self.sigmoid(out)
+        #out=self.sigmoid(out)
         return out
 if __name__=='__main__':
     model=Teawater_v7(1,2)
