@@ -139,7 +139,6 @@ class Spaceatt(nn.Module):
             nn.Conv2d(in_channel, in_channel // decay, 1),
             nn.BatchNorm2d(in_channel // decay),
             nn.Conv2d(in_channel // decay, 1, 1),
-            nn.Sigmoid()
         )
         self.K = nn.Sequential(
             nn.Conv2d(in_channel, in_channel // decay, 1),
