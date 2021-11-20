@@ -54,7 +54,7 @@ class train_model_localv2():
         self.config.batch_size = self.batch_size['train']
         self.config.test_batch_size = self.batch_size['val']
         self.config.epochs = self.num_epochs
-        self.config.lr = 0.00005  # learning rate(default:0.01)
+        self.config.lr = 0.0001  # learning rate(default:0.01)
         #self.config.momentum = 0.1  # SGD momentum(default:0.5)
         #self.config.no_cuda = False  # disables CUDA training
         self.config.seed =self.seeds
