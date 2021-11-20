@@ -24,7 +24,7 @@ def set_seed(seed = 42):
     # Set a fixed value for the hash seed
     os.environ['PYTHONHASHSEED'] = str(seed)
     print('> SEEDING DONE')
-class train_model_localv2():
+class train_model_localv2visual():
     """Usage:
         init:model
         compile:dataloaders,criterion,optimizer,num_epochs,batch_size,train_path,val_path,device='cpu'
@@ -32,7 +32,7 @@ class train_model_localv2():
     """
 
     def __init__(self, model,seeds=42):
-        super(train_model_localv2).__init__()
+        super(train_model_localv2visual).__init__()
         self.model = model
         self.seeds=seeds
         self.name=self.model.__class__.__name__
