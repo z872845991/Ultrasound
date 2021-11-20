@@ -160,6 +160,7 @@ class Spaceatt(nn.Module):
         V = self.V(high)
         att = Q * K
         att=att@V 
+        att=self.sig(att)
         return att
 
 
