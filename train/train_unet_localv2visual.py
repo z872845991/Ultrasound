@@ -38,7 +38,7 @@ class train_model_localv2visual():
         self.name=self.model.__class__.__name__
         self.wandb=wandb
         self.wandb.init(project=self.name,entity="xiaolanshu")
-        set_seed(seeds)
+        #set_seed(seeds)
     def compile(self, dataloaders, criterion, optimizer, num_epochs, batch_size, train_path, val_path, device='cpu'):
         self.criterion = criterion
         self.optimizer = optimizer
