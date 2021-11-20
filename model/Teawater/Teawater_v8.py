@@ -160,7 +160,6 @@ class Spaceatt(nn.Module):
         V = self.V(high)
         att = Q * K
         att=att@V 
-        att=F.softmax(self.sig(att),dim=1)
         return att
 
 
