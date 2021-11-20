@@ -6,7 +6,7 @@ import torch.nn as nn
 from model.SE_layer import SELayer
 
 
-def conv(in_channels, out_channels, kernel=3, pad=1,dilate=0):
+def conv(in_channels, out_channels, kernel=3, pad=2,dilate=2):
     return nn.Sequential(
         nn.Conv2d(in_channels, out_channels, kernel_size=kernel, padding=pad,dilation=dilate),
         nn.BatchNorm2d(out_channels),
@@ -14,7 +14,7 @@ def conv(in_channels, out_channels, kernel=3, pad=1,dilate=0):
     )
 
 
-class Incpetion_SE_block(nn.Module):
+class Incpetion_SE_block_dilate(nn.Module):
     def __init__(self, in_channel, decay=2):
         super().__init__()
 
@@ -59,7 +59,7 @@ class Incpetion_SE_block(nn.Module):
         return l
 
 
-class Incpetion_SE_block_decoder(nn.Module):
+class Incpetion_SE_block_decoder_dilate(nn.Module):
     def __init__(self, in_channel, decay=2):
         super().__init__()
 
