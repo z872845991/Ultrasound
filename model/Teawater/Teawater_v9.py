@@ -46,7 +46,7 @@ class En_blocks2(nn.Module):
             nn.BatchNorm2d(out_channel//2),
             nn.ReLU(inplace=True)
         )
-        self.sapceatt=Spaceatt(out_channel//2)
+        self.sapceatt=Spaceattenblock(out_channel//2)
 
     def forward(self, x):
         conv1 = self.conv1(x)
@@ -153,6 +153,36 @@ class Channelatt(nn.Module):
         se = self.layer(gp)
         return x * se
 
+class Spaceattenblock(nn.Module):
+    def __init__(self, in_channel,decay=2):
+        super(Spaceattenblock, self).__init__()
+        self.Q = nn.Sequential(
+            nn.Conv2d(in_channel, in_channel // decay, 1),
+            nn.BatchNorm2d(in_channel // decay),
+            nn.Conv2d(in_channel // decay, 1, 1),
+        )
+        self.K = nn.Sequential(
+            nn.Conv2d(in_channel, in_channel // decay, 1),
+            nn.BatchNorm2d(in_channel//decay),
+        )
+        self.V = nn.Sequential(
+            nn.Conv2d(in_channel, in_channel // decay, 1),
+            nn.BatchNorm2d(in_channel//decay)
+        )
+        self.sig = nn.Sequential(
+            nn.Conv2d(in_channel // decay, in_channel, 1),
+            nn.BatchNorm2d(in_channel),
+            nn.ReLU(inplace=True)
+        )
+        self.softmax = nn.Softmax(in_channel)
+
+    def forward(self, low,high):
+        Q = self.Q(low)
+        K = self.K(low)
+        V = self.V(high)
+        att = Q * K
+        att=att@V
+        return self.sig(att)
 
 class Spaceatt(nn.Module):
     def __init__(self, in_channel,decay=2):

@@ -57,7 +57,7 @@ class train_model_localv2visual():
         self.config.lr = 0.0001  # learning rate(default:0.01)
         #self.config.momentum = 0.1  # SGD momentum(default:0.5)
         #self.config.no_cuda = False  # disables CUDA training
-        self.config.seed =self.seeds
+        #self.config.seed =self.seeds
         self.config.log_interval = 10
     def summarys(self, input_size):
         summary(self.model, input_size=input_size)
