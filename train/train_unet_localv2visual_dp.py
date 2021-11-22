@@ -108,8 +108,8 @@ class train_model_localv2visual_dp():
                     # with open(trainfile, 'a+') as filetrain:
                     #     filetrain.write("epoch: %d  ,idx: %d   ,loss: %5f   ,miou:   %5f,maxiou: %5f    ,miniou: %5f    ,mdice: %5f   ,maxdice: %5f   ,mindice: %5f   " % (
                     #         epoch, idx, epoch_loss / step, avgmeter1.avg*100.0, avgmeter1.max*100.0, avgmeter1.min*100.0, avgmeter2.avg*100.0, avgmeter2.max*100.0, avgmeter2.min*100.0)+'\n')
-                    value = [epoch, idx, epoch_loss/step, avgmeter1.avg, avgmeter1.max,
-                             avgmeter1.min, avgmeter2.avg, avgmeter2.max, avgmeter2.min]
+                    value = [epoch, idx, epoch_loss/step, avgmeter1.avg*1.0, avgmeter1.max *1.0,
+                             avgmeter1.min*1.0, avgmeter2.avg*1.0, avgmeter2.max *1.0, avgmeter2.min*1.0]
                     df.loc[len(df)] = value
                     df.to_csv(trainfile)
                 else:
@@ -181,11 +181,11 @@ class train_model_localv2visual_dp():
                     #         te_avgmeter1.seventh*100.0, te_avgmeter1.eighth*100.0, te_avgmeter2.first *
                     #         100.0, te_avgmeter2.second*100.0, te_avgmeter2.third*100.0,
                     #         te_avgmeter2.forth*100.0, te_avgmeter2.fifth*100.0, te_avgmeter2.sixth*100.0, te_avgmeter2.seventh*100.0, te_avgmeter2.eighth*100.0) + '\n')
-                    val_value = [te_avgmeter3.avg, te_avgmeter4.avg, te_avgmeter5.avg, te_avgmeter6.avg, te_avgmeter7.avg, te_avgmeter1.avg, 
-                                te_avgmeter1.max, te_avgmeter1.min, te_avgmeter2.avg, te_avgmeter2.max, te_avgmeter2.min, te_avgmeter1.first,
-                                 te_avgmeter1.second, te_avgmeter1.third, te_avgmeter1.forth, te_avgmeter1.fifth, te_avgmeter1.sixth,te_avgmeter1.seventh,
-                                 te_avgmeter1.eighth, te_avgmeter2.first, te_avgmeter2.second, te_avgmeter2.third,
-                                 te_avgmeter2.forth, te_avgmeter2.fifth, te_avgmeter2.sixth, te_avgmeter2.seventh, te_avgmeter2.eighth]
+                    val_value = [te_avgmeter3.avg*1.0, te_avgmeter4.avg*1.0, te_avgmeter5.avg*1.0, te_avgmeter6.avg*1.0, te_avgmeter7.avg*1.0, te_avgmeter1.avg*1.0, 
+                                te_avgmeter1.max *1.0, te_avgmeter1.min*1.0, te_avgmeter2.avg*1.0, te_avgmeter2.max *1.0, te_avgmeter2.min*1.0, te_avgmeter1.first*1.0,
+                                 te_avgmeter1.second*1.0, te_avgmeter1.third*1.0, te_avgmeter1.forth*1.0, te_avgmeter1.fifth*1.0, te_avgmeter1.sixth*1.0,te_avgmeter1.seventh*1.0,
+                                 te_avgmeter1.eighth*1.0, te_avgmeter2.first*1.0, te_avgmeter2.second*1.0, te_avgmeter2.third*1.0,
+                                 te_avgmeter2.forth*1.0, te_avgmeter2.fifth*1.0, te_avgmeter2.sixth*1.0, te_avgmeter2.seventh*1.0, te_avgmeter2.eighth*1.0]
                     val_df.loc[len(val_df)]=val_value
                     val_df.to_csv(testfile)
         df['mdice'] = df['mdice'].map('{:.3%}'.format)
