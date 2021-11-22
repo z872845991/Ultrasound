@@ -192,6 +192,8 @@ class train_model_localv2visual():
         df['miou'] = df['miou'].map('{:.3%}'.format)
         val_df['mdice'] = val_df['mdice'].map('{:.3%}'.format)
         val_df['miou'] = val_df['miou'].map('{:.3%}'.format)
+        df.to_csv(trainfile)
+        val_df.to_csv(testfile)
         # 将最大的miou和mdice从临时文件夹移走
         
         oldname = tmpcheckfile+'_%d.pth' % fromnum
