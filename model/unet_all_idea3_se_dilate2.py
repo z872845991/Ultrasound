@@ -7,8 +7,8 @@
 # Estimated Total Size (MB): 1005.77
 # ----------------------------------------------------------------
 
-# import sys
-# sys.path.append('D:/Onedrive/Github/Ultrasound')
+import sys
+sys.path.append('D:/Onedrive/Github/Ultrasound')
 import torch
 import torch.nn as nn
 from model.inception_SE_block_dilate import Incpetion_SE_block_dilate,Incpetion_SE_block_decoder_dilate
@@ -35,10 +35,10 @@ class Unet_all_idea3_se_dilate2(nn.Module):
         self.maxpool=nn.MaxPool2d(2)
 
         self.up1=nn.ConvTranspose2d(1024,512,2,stride=2)
-        self.conv_up1=Incpetion_SE_block_decoder_dilate(1024,decay)
+        self.conv_up1=Incpetion_SE_block_decoder_dilate(1024,decay=4)
 
         self.up2=nn.ConvTranspose2d(512,256,2,stride=2)
-        self.conv_up2=Incpetion_SE_block_decoder_dilate(512,decay)
+        self.conv_up2=Incpetion_SE_block_decoder_dilate(512,decay=4)
 
         self.up3=nn.ConvTranspose2d(256,128,2,stride=2)
         self.conv_up3=Incpetion_SE_block_decoder_dilate(256,decay)
@@ -83,5 +83,5 @@ class Unet_all_idea3_se_dilate2(nn.Module):
         return output
 
 if __name__=='__main__':
-    model=Unet_all_idea3_se_dilate2(1)
+    model=Unet_all_idea3_se_dilate2(1,2)
     summary(model,(3,224,224))
