@@ -11,7 +11,10 @@ from tools.metrics import (dice_coef, get_accuracy, get_F1, get_precision,
 from tools.utils import AverageMeter
 from torchsummary import summary
 from tqdm import tqdm
-def set_seed(seed = 42):
+import pandas as pd
+
+
+def set_seed(seed=42):
     '''Sets the seed of the entire notebook so results are the same every time we run.
     This is for REPRODUCIBILITY.'''
     np.random.seed(seed)
@@ -24,6 +27,8 @@ def set_seed(seed = 42):
     # Set a fixed value for the hash seed
     os.environ['PYTHONHASHSEED'] = str(seed)
     print('> SEEDING DONE')
+
+
 class train_model_localv2visual():
     """Usage:
         init:model
@@ -31,14 +36,15 @@ class train_model_localv2visual():
         fit:save_trainfile,save_testfile,save_temp_checkpoints,save_hard_seg_pic,save_checkpoints_folder
     """
 
-    def __init__(self, model,seeds=42):
+    def __init__(self, model, seeds=42):
         super(train_model_localv2visual).__init__()
         self.model = model
-        self.seeds=seeds
-        self.name=self.model.__class__.__name__
-        self.wandb=wandb
-        self.wandb.init(project=self.name,entity="xiaolanshu")
-        #set_seed(seeds)
+        self.seeds = seeds
+        self.name = self.model.__class__.__name__
+        self.wandb = wandb
+        self.wandb.init(project=self.name, entity="xiaolanshu")
+        # set_seed(seeds)
+
     def compile(self, dataloaders, criterion, optimizer, num_epochs, batch_size, train_path, val_path, device='cpu'):
         self.criterion = criterion
         self.optimizer = optimizer
@@ -49,16 +55,16 @@ class train_model_localv2visual():
         self.device = device
         self.dataloaders = dataloaders
 
-
-        self.config=self.wandb.config
+        self.config = self.wandb.config
         self.config.batch_size = self.batch_size['train']
         self.config.test_batch_size = self.batch_size['val']
         self.config.epochs = self.num_epochs
         self.config.lr = 0.0001  # learning rate(default:0.01)
-        #self.config.momentum = 0.1  # SGD momentum(default:0.5)
-        #self.config.no_cuda = False  # disables CUDA training
+        # self.config.momentum = 0.1  # SGD momentum(default:0.5)
+        # self.config.no_cuda = False  # disables CUDA training
         #self.config.seed =self.seeds
         self.config.log_interval = 10
+
     def summarys(self, input_size):
         summary(self.model, input_size=input_size)
 
@@ -67,6 +73,12 @@ class train_model_localv2visual():
         fromnum = 0
         bigdice = 0
         fromnumd = 0
+        train_columns = ['epoch', 'idx', 'loss', 'miou',
+                         'maxiou', 'miniou', 'mdice', 'maxdice', 'mindice']
+        val_columns = ['ACC', 'PPV', 'TNR', 'TPR', 'F1', 'miou', 'maxiou', 'miniou', 'mdice', 'maxdice', 'mindice', 'iou1', 'iou2',
+                       'iou3', 'iou4', 'iou5', 'iou6', 'iou7', 'iou8', 'dice1', 'dice2', 'dice3', 'dice4', 'dice5', 'dice6', 'dice7', 'dice8']
+        df = pd.DataFrame(columns=train_columns)
+        val_df = pd.DataFrame(columns=val_columns)
         for epoch in range(self.num_epochs):
             print("Start epoch %d" % epoch)
             for phase in ['train', 'val']:
@@ -90,12 +102,16 @@ class train_model_localv2visual():
                         dice = dice_coef(outputs, labels)
                         avgmeter1.update(iou, self.batch_size[phase])
                         avgmeter2.update(dice, self.batch_size[phase])
-                    print("loss: %5f"%(epoch_loss / step))
+                    print("loss: %5f" % (epoch_loss / step))
                     print("train: miou: %5f , midce: %5f " % (
                         avgmeter1.avg*100.0, 100.0*avgmeter2.avg))
-                    with open(trainfile, 'a+') as filetrain:
-                        filetrain.write("epoch: %d  ,idx: %d   ,loss: %5f   ,miou:   %5f,maxiou: %5f    ,miniou: %5f    ,mdice: %5f   ,maxdice: %5f   ,mindice: %5f   " % (
-                            epoch, idx, epoch_loss / step, avgmeter1.avg*100.0, avgmeter1.max*100.0, avgmeter1.min*100.0, avgmeter2.avg*100.0, avgmeter2.max*100.0, avgmeter2.min*100.0)+'\n')
+                    # with open(trainfile, 'a+') as filetrain:
+                    #     filetrain.write("epoch: %d  ,idx: %d   ,loss: %5f   ,miou:   %5f,maxiou: %5f    ,miniou: %5f    ,mdice: %5f   ,maxdice: %5f   ,mindice: %5f   " % (
+                    #         epoch, idx, epoch_loss / step, avgmeter1.avg*100.0, avgmeter1.max*100.0, avgmeter1.min*100.0, avgmeter2.avg*100.0, avgmeter2.max*100.0, avgmeter2.min*100.0)+'\n')
+                    value = [epoch, idx, epoch_loss/step, avgmeter1.avg, avgmeter1.max,
+                             avgmeter1.min, avgmeter2.avg, avgmeter2.max, avgmeter2.min]
+                    df.loc[len(df)] = value
+                    df.to_csv(trainfile)
                 else:
                     self.model.eval()
                     threshold = 0.5
@@ -107,7 +123,7 @@ class train_model_localv2visual():
                     te_avgmeter6 = AverageMeter()
                     te_avgmeter7 = AverageMeter()
                     epoch_loss = 0
-                    step=0
+                    step = 0
                     with torch.no_grad():
                         for idx, data in enumerate(self.dataloaders[phase]):
                             inputs, labels = data[0].to(
@@ -115,7 +131,7 @@ class train_model_localv2visual():
                             z = data[2]
                             outputs = self.model(inputs)
                             loss = self.criterion(outputs, labels)
-                            step+=1
+                            step += 1
                             epoch_loss += loss.item()
                             iou1 = iou_score(outputs, labels)
                             dice1 = dice_coef(outputs, labels)
@@ -139,7 +155,7 @@ class train_model_localv2visual():
                     self.wandb.log({
                         "Vaild Loss": epoch_loss/step,
                         "MIOU": 100.0*te_avgmeter1.avg,
-                        "MDice":100.0*te_avgmeter2.avg
+                        "MDice": 100.0*te_avgmeter2.avg
                     })
                     print("test: miou: %5f , midce: %5f " %
                           (100.0*te_avgmeter1.avg, 100.0*te_avgmeter2.avg))
@@ -154,18 +170,30 @@ class train_model_localv2visual():
                         if fromnum != fromnumd:
                             savepth1 = tmpcheckfile+'_%d.pth' % epoch
                             torch.save(self.model.state_dict(), savepth1)
-                    with open(testfile, 'a+') as fileval:
-                        fileval.write("ACC: %5f,PPV: %5f,TNR: %5f,TPR: %5f,F1: %5f,miou: %5f,maxiou: %5f,miniou: %5f,mdice: %5f,maxdice: %5f,mindice: %5f,iou1: %5f,iou2: %5f,iou3: %5f,iou4: %5f,iou5: %5f,iou6: %5f,iou7: %5f,iou8: %5f,dice1: %5f,dice2: %5f,dice3: %5f,dice4: %5f,dice5: %5f,dice6: %5f,dice7: %5f,dice8: %5f" % (
-                            te_avgmeter3.avg*100.0, te_avgmeter4.avg*100.0, te_avgmeter5.avg *
-                            100.0, te_avgmeter6.avg*100.0, te_avgmeter7.avg*100.0, te_avgmeter1.avg*100.0,
-                            te_avgmeter1.max*100.0, te_avgmeter1.min*100.0, te_avgmeter2.avg *
-                            100.0, te_avgmeter2.max*100.0, te_avgmeter2.min*100.0, te_avgmeter1.first*100.0,
-                            te_avgmeter1.second*100.0, te_avgmeter1.third*100.0, te_avgmeter1.forth *
-                            100.0, te_avgmeter1.fifth*100.0, te_avgmeter1.sixth*100.0,
-                            te_avgmeter1.seventh*100.0, te_avgmeter1.eighth*100.0, te_avgmeter2.first *
-                            100.0, te_avgmeter2.second*100.0, te_avgmeter2.third*100.0,
-                            te_avgmeter2.forth*100.0, te_avgmeter2.fifth*100.0, te_avgmeter2.sixth*100.0, te_avgmeter2.seventh*100.0, te_avgmeter2.eighth*100.0) + '\n')
-        ## 将最大的miou和mdice从临时文件夹移走      
+                    # with open(testfile, 'a+') as fileval:
+                    #     fileval.write("ACC: %5f,PPV: %5f,TNR: %5f,TPR: %5f,F1: %5f,miou: %5f,maxiou: %5f,miniou: %5f,mdice: %5f,maxdice: %5f,mindice: %5f,iou1: %5f,iou2: %5f,iou3: %5f,iou4: %5f,iou5: %5f,iou6: %5f,iou7: %5f,iou8: %5f,dice1: %5f,dice2: %5f,dice3: %5f,dice4: %5f,dice5: %5f,dice6: %5f,dice7: %5f,dice8: %5f" % (
+                    #         te_avgmeter3.avg*100.0, te_avgmeter4.avg*100.0, te_avgmeter5.avg *
+                    #         100.0, te_avgmeter6.avg*100.0, te_avgmeter7.avg*100.0, te_avgmeter1.avg*100.0,
+                    #         te_avgmeter1.max*100.0, te_avgmeter1.min*100.0, te_avgmeter2.avg *
+                    #         100.0, te_avgmeter2.max*100.0, te_avgmeter2.min*100.0, te_avgmeter1.first*100.0,
+                    #         te_avgmeter1.second*100.0, te_avgmeter1.third*100.0, te_avgmeter1.forth *
+                    #         100.0, te_avgmeter1.fifth*100.0, te_avgmeter1.sixth*100.0,
+                    #         te_avgmeter1.seventh*100.0, te_avgmeter1.eighth*100.0, te_avgmeter2.first *
+                    #         100.0, te_avgmeter2.second*100.0, te_avgmeter2.third*100.0,
+                    #         te_avgmeter2.forth*100.0, te_avgmeter2.fifth*100.0, te_avgmeter2.sixth*100.0, te_avgmeter2.seventh*100.0, te_avgmeter2.eighth*100.0) + '\n')
+                    val_value = [te_avgmeter3.avg, te_avgmeter4.avg, te_avgmeter5.avg, te_avgmeter6.avg, te_avgmeter7.avg, te_avgmeter1.avg, 
+                                te_avgmeter1.max, te_avgmeter1.min, te_avgmeter2.avg, te_avgmeter2.max, te_avgmeter2.min, te_avgmeter1.first,
+                                 te_avgmeter1.second, te_avgmeter1.third, te_avgmeter1.forth, te_avgmeter1.fifth, te_avgmeter1.sixth,te_avgmeter1.seventh,
+                                 te_avgmeter1.eighth, te_avgmeter2.first, te_avgmeter2.second, te_avgmeter2.third,
+                                 te_avgmeter2.forth, te_avgmeter2.fifth, te_avgmeter2.sixth, te_avgmeter2.seventh, te_avgmeter2.eighth]
+                    val_df.loc[len(val_df)]=val_value
+                    val_df.to_csv(testfile)
+        df['mdice'] = df['mdice'].map('{:.3%}'.format)
+        df['miou'] = df['miou'].map('{:.3%}'.format)
+        val_df['mdice'] = val_df['mdice'].map('{:.3%}'.format)
+        val_df['miou'] = val_df['miou'].map('{:.3%}'.format)
+        # 将最大的miou和mdice从临时文件夹移走
+        
         oldname = tmpcheckfile+'_%d.pth' % fromnum
         newname = checkfile+'_%d.pth' % fromnum
         os.rename(oldname, newname)
@@ -177,5 +205,5 @@ class train_model_localv2visual():
         print("The max Mean IOU is:%.4f" % bigiou)
         print("The number epoch is:%d" % fromnum)
         print("The max Mean Dice is:%.4f" % bigdice)
-        print("The number epoch is:%d" % fromnumd)        
+        print("The number epoch is:%d" % fromnumd)
         return fromnum
