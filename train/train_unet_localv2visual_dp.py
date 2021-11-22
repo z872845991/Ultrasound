@@ -12,7 +12,13 @@ from tools.utils import AverageMeter
 from torchsummary import summary
 from tqdm import tqdm
 import pandas as pd
-
+def multi_bce(dp4,dp3,dp2,dp1,labels,criterion):
+    out4=criterion(dp4,labels)
+    out3=criterion(dp3,labels)
+    out2=criterion(dp2,labels)
+    out1=criterion(dp1,labels)
+    loss=0.1*out4+0.2*out3+0.3*out2+0.4*out1
+    return loss
 
 def set_seed(seed=42):
     '''Sets the seed of the entire notebook so results are the same every time we run.
@@ -91,15 +97,15 @@ class train_model_localv2visual_dp():
                     for idx, data in enumerate(tqdm(self.dataloaders[phase])):
                         inputs, labels = data[0].to(
                             self.device), data[1].to(self.device)
-                        outputs = self.model(inputs)
-                        loss = self.criterion(outputs, labels)
+                        dp4,dp3,dp2,dp1 = self.model(inputs)
+                        loss = multi_bce(dp4,dp3,dp2,dp1,labels,self.criterion)
                         step += 1
                         epoch_loss += loss.item()
                         self.optimizer.zero_grad()
                         loss.backward()
                         self.optimizer.step()
-                        iou = iou_score(outputs, labels)
-                        dice = dice_coef(outputs, labels)
+                        iou = iou_score(dp1, labels)
+                        dice = dice_coef(dp1, labels)
                         avgmeter1.update(iou, self.batch_size[phase])
                         avgmeter2.update(dice, self.batch_size[phase])
                     print("loss: %5f" % (epoch_loss / step))
@@ -129,17 +135,17 @@ class train_model_localv2visual_dp():
                             inputs, labels = data[0].to(
                                 self.device), data[1].to(self.device)
                             z = data[2]
-                            outputs = self.model(inputs)
-                            loss = self.criterion(outputs, labels)
+                            dp4,dp3,dp2,dp1 = self.model(inputs)
+                            loss = multi_bce(dp4,dp3,dp2,dp1,labels,self.criterion)
                             step += 1
                             epoch_loss += loss.item()
-                            iou1 = iou_score(outputs, labels)
-                            dice1 = dice_coef(outputs, labels)
-                            ACC1 = get_accuracy(outputs, labels)
-                            PPV1 = get_precision(outputs, labels)
-                            TNR1 = get_specificity(outputs, labels)
-                            TPR1 = get_recall(outputs, labels)
-                            F11 = get_F1(outputs, labels)
+                            iou1 = iou_score(dp1, labels)
+                            dice1 = dice_coef(dp1, labels)
+                            ACC1 = get_accuracy(dp1, labels)
+                            PPV1 = get_precision(dp1, labels)
+                            TNR1 = get_specificity(dp1, labels)
+                            TPR1 = get_recall(dp1, labels)
+                            F11 = get_F1(dp1, labels)
                             te_avgmeter1.update(iou1)
                             te_avgmeter2.update(dice1)
                             te_avgmeter3.update(ACC1)
