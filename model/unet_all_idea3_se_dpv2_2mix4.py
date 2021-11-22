@@ -7,8 +7,8 @@
 # Estimated Total Size (MB): 1005.77
 # ----------------------------------------------------------------
 
-# import sys
-# sys.path.append('D:/Onedrive/Github/Ultrasound')
+import sys
+sys.path.append('D:/Onedrive/Github/Ultrasound')
 '''
 
 '''
@@ -76,19 +76,21 @@ class Unet_all_idea3_se_dpv2_2mix4(nn.Module):
         merge1=torch.cat([conv4,up1],dim=1)
         conv_up1=self.conv_up1(merge1)
         dp4=self.dp_conv4(conv_up1)
-        dp4=F.upsample(dp4, size=(h,w), mode='bilinear')
+        
+        dp4=F.interpolate(dp4,size=(h,w),mode='bilinear')
+        #dp4=F.interpolate(dp4, size=(h,w), mode='bilinear')
 
         up2=self.up2(conv_up1)
         merge2=torch.cat([conv3,up2],dim=1)
         conv_up2=self.conv_up2(merge2)
         dp3=self.dp_conv3(conv_up2)
-        dp3=F.upsample(dp3, size=(h,w), mode='bilinear')
+        dp3=F.interpolate(dp3, size=(h,w), mode='bilinear')
 
         up3=self.up3(conv_up2)
         merge3=torch.cat([conv2,up3],dim=1)
         conv_up3=self.conv_up3(merge3)
         dp2=self.dp_conv2(conv_up3)
-        dp2=F.upsample(dp2, size=(h,w), mode='bilinear')
+        dp2=F.interpolate(dp2, size=(h,w), mode='bilinear')
 
         up4=self.up4(conv_up3)
         merge4=torch.cat([conv1,up4],dim=1)
