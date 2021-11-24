@@ -35,13 +35,12 @@ class Fetus_transformDataset(Dataset):
             name = img
             img=cv2.imread(os.path.join(self.path,img))
             img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-            label=cv2.imread(os.path.join(self.path,label))
-            label=cv2.cvtColor(label)
+            label=cv2.imread(os.path.join(self.path,label),cv2.IMREAD_GRAYSCALE)
             if self.transform:
                 data=self.transform(image=img,mask=label)
                 img=data['image']
                 label=data['mask']
-            return np.moveaxis(np.array(img),2,0), np.moveaxis(np.array(label),2,0)
+            return np.moveaxis(np.array(img),2,0), label.reshape((1, self.IMAGE_RESIZE[0], self.IMAGE_RESIZE[1]))
         else:
             img, label = self.imgs[index]
             name = img
