@@ -51,7 +51,8 @@ class Fetus_transformDataset(Dataset):
                 data=self.train_transform(image=img,mask=label)
                 img=data['image']
                 label=data['mask']
-            return np.moveaxis(np.array(img),2,0), label.reshape((1, self.IMAGE_RESIZE[0], self.IMAGE_RESIZE[1]))
+            label=label.reshape((1, self.IMAGE_RESIZE[0], self.IMAGE_RESIZE[1]))
+            return np.moveaxis(np.array(img),2,0), np.moveaxis(np.array(label),2,0)
         else:
             img,label = self.imgs[index]
             name = img
@@ -67,6 +68,7 @@ class Fetus_transformDataset(Dataset):
                 data2=self.test_transform(image=img,mask=label)
                 img=data2['image']
                 label=data2['mask']
-            return np.moveaxis(np.array(img),2,0), label.reshape((1, self.IMAGE_RESIZE[0], self.IMAGE_RESIZE[1]))
+            label = label.reshape((1, self.IMAGE_RESIZE[0], self.IMAGE_RESIZE[1]))
+            return np.moveaxis(np.array(img),2,0),np.moveaxis(np.array(label),2,0)
     def __len__(self):
         return len(self.imgs)
