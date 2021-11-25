@@ -69,6 +69,6 @@ class Fetus_transformDataset(Dataset):
                 img=data2['image']
                 label=data2['mask']
             #label = label.reshape((1, self.IMAGE_RESIZE[0], self.IMAGE_RESIZE[1]))
-            return np.moveaxis(np.array(img),2,0),label.reshape((1, self.IMAGE_RESIZE[0], self.IMAGE_RESIZE[1]))
+            return np.moveaxis(np.array(img),2,0),label.reshape((1, self.IMAGE_RESIZE[0], self.IMAGE_RESIZE[1])),name
     def __len__(self):
         return len(self.imgs)
