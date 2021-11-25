@@ -7,8 +7,8 @@
 # Estimated Total Size (MB): 1005.77
 # ----------------------------------------------------------------
 
-# import sys
-# sys.path.append('D:/Onedrive/Github/Ultrasound')
+import sys
+sys.path.append('D:/Onedrive/Github/Ultrasound')
 import torch
 import torch.nn as nn
 from model.inception_SE_block import Incpetion_SE_block,Incpetion_SE_block_decoder
