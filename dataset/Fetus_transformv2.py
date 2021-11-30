@@ -17,9 +17,12 @@ def make_dataset(path):
 
     return imgs
 
-class Fetus_transformDataset(Dataset):
+class Fetus_transformDatasetv2(Dataset):
+    r"""
+    对训练集进行，随机裁剪，
+    """
     def __init__(self,path,mode='train'):
-        super(Fetus_transformDataset,self).__init__()
+        super(Fetus_transformDatasetv2,self).__init__()
         self.IMAGE_RESIZE = (512, 512)
         self.RESNET_MEAN = (0.485, 0.456, 0.406)
         self.RESNET_STD = (0.229, 0.224, 0.225)
@@ -27,7 +30,7 @@ class Fetus_transformDataset(Dataset):
         self.mode = mode
         self.imgs = make_dataset(path)
         #self.transform = Compose([Resize( self.IMAGE_RESIZE[0],  self.IMAGE_RESIZE[1])])
-        self.train_transform = Compose([A.Resize(width=self.IMAGE_RESIZE[0],height=self.IMAGE_RESIZE[1]),
+        self.train_transform = Compose([A.RandomCrop(self.IMAGE_RESIZE[1],self.IMAGE_RESIZE[0] , always_apply=False, p=1.0),
                                    Normalize(mean=0., std=1., p=1),
                                    HorizontalFlip(p=0.5),
                                    VerticalFlip(p=0.5)])
