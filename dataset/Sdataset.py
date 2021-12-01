@@ -45,7 +45,7 @@ class SDataset(Dataset):
                 label = self.target_transform(label)
 
 
-            return img,label
+            return img,label,name
 
         else:
             img, label = self.imgs[index]
