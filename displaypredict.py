@@ -5,6 +5,7 @@ import torch
 from torch import nn,optim
 from dataset.Fetus import FetusDataset
 from dataset.Fetus_transform import Fetus_transformDataset
+from dataset.Sdataset import SDataset
 from torch.utils.data import DataLoader, dataloader
 import cv2
 import matplotlib.pyplot as plt
@@ -14,6 +15,7 @@ from matplotlib import image
 import argparse
 ### import model
 from model.unet_all_idea3_se import Unet_all_idea3_se
+from model.unet_all_idea3_se_dilate2mix4 import Unet_all_idea3_se_dilate2mix4
 def predict(args,model):
     if args.device=='cpu':
         model.load_state_dict(torch.load(args.pth,map_location=torch.device('cpu')))
@@ -35,6 +37,8 @@ def predict(args,model):
         pre_dataset=FetusDataset(args.datapath,transform=x_transforms,target_transform=y_transforms)
     elif args.dataset=='Fetus_transformDataset':
         pre_dataset=Fetus_transformDataset(args.datapath,mode='val')
+    elif args.dataset=='SDataset':
+        pre_dataset=SDataset(args.datapath,transform=x_transforms,target_transform=y_transforms)
     dataloader=DataLoader(pre_dataset,batch_size=args.batch_size,shuffle=args.shuffle)
     imgs,labels,names=next(iter(dataloader))
     imgs_y=model(imgs)
@@ -45,7 +49,8 @@ def predict(args,model):
 def predict_image(imgs,labels,imgs1_y,imgs2_y,names,flag):
     l=len(imgs)
     for i in range(l):
-        img,label,img1_y,img2_y,name=imgs[i],labels[i],imgs1_y[i],imgs2_y[i],names[i].split('.')[0]
+        name=names[i].split('\\')[-1]
+        img,label,img1_y,img2_y,name=imgs[i],labels[i],imgs1_y[i],imgs2_y[i],name.split('.')[0]
         img_=img.squeeze().permute(1,2,0).numpy()
         label_=label.squeeze().numpy()
         img1_ys=img1_y.squeeze().detach().numpy()
@@ -84,13 +89,13 @@ def predict_image(imgs,labels,imgs1_y,imgs2_y,names,flag):
 if __name__=='__main__':
     parse=argparse.ArgumentParser()
 
-    parse.add_argument('--pth',type=str,default='F:/checkpoints/train_7m_Unet_all_idea3_se_1e4__change_38.pth')
+    parse.add_argument('--pth',type=str,default='F:/checkpoints/train_7m_Teawater_v6_1e4_Kvasir-SEG_change_119.pth')
     parse.add_argument('--device',type=str,default='cpu')
-    parse.add_argument('--dataset',type=str,default='FetusDataset')
+    parse.add_argument('--dataset',type=str,default='SDataset')
     parse.add_argument('--batch_size',type=int,default=5)
     parse.add_argument('--shuffle',type=str,default='True')
-    parse.add_argument('--flag',type=str,default='train_7m_Unet_all_idea3_se_1e4__change_38')
-    parse.add_argument('--datapath',type=str,default='E:\\Idm_Downloads\\Compressed\\Data\\data\\test')
+    parse.add_argument('--flag',type=str,default='Teawater_v6_1e4_Kvasir-SEG_change_119')
+    parse.add_argument('--datapath',type=str,default='E:/Idm_Downloads/Compressed/Kvasir-SEG/')
     args=parse.parse_args()
-    model=Unet_all_idea3_se(1,2)
+    model=Teawater_v6(1,2)
     predict(args,model)
