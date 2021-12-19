@@ -132,10 +132,12 @@ class train_model_localv2():
         oldname = tmpcheckfile+'_%d.pth' % fromnum
         newname = checkfile+'_%d.pth' % fromnum
         os.rename(oldname, newname)
-
-        oldname2 = tmpcheckfile+'_%d.pth' % fromnumd
-        newname2 = checkfile+'_%d.pth' % fromnumd
-        os.rename(oldname2, newname2)
+        self.wandb.save(oldname)
+        if fromnum != fromnumd:
+            oldname2 = tmpcheckfile+'_%d.pth' % fromnumd
+            newname2 = checkfile+'_%d.pth' % fromnumd
+            os.rename(oldname2, newname2)
+            self.wandb.save(newname2)
 
         print("The max Mean IOU is:%.4f" % bigiou)
         print("The number epoch is:%d" % fromnum)

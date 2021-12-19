@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import random
-from torch.optim.lr_scheduler import StepLR
+import torch.nn.functional as F
 from tools.metrics import (dice_coef, get_accuracy, get_F1, get_precision,
                            get_recall, get_specificity, iou_score)
 from tools.utils import AverageMeter
@@ -14,6 +14,19 @@ from torchsummary import summary
 from tqdm import tqdm
 import pandas as pd
 
+
+def structure_loss(pred, mask):
+    
+    weit = 1 + 5*torch.abs(F.avg_pool2d(mask, kernel_size=31, stride=1, padding=15) - mask)
+    wbce = F.binary_cross_entropy_with_logits(pred, mask, reduce='none')
+    wbce = (weit*wbce).sum(dim=(2, 3)) / weit.sum(dim=(2, 3))
+
+    pred = torch.sigmoid(pred)
+    inter = ((pred * mask)*weit).sum(dim=(2, 3))
+    union = ((pred + mask)*weit).sum(dim=(2, 3))
+    wiou = 1 - (inter + 1)/(union - inter+1)
+    
+    return (wbce + wiou).mean()
 
 def set_seed(seed=42):
     '''Sets the seed of the entire notebook so results are the same every time we run.
@@ -30,7 +43,7 @@ def set_seed(seed=42):
     print('> SEEDING DONE')
 
 
-class train_model_localv2visual_lr():
+class train_model_localv2visual_cadp5():
     """Usage:
         init:model
         compile:dataloaders,criterion,optimizer,num_epochs,batch_size,train_path,val_path,device='cpu'
@@ -38,7 +51,7 @@ class train_model_localv2visual_lr():
     """
 
     def __init__(self, model, seeds=42):
-        super(train_model_localv2visual_lr).__init__()
+        super(train_model_localv2visual_cadp5).__init__()
         self.model = model
         self.seeds = seeds
         self.name = self.model.__class__.__name__
@@ -46,10 +59,10 @@ class train_model_localv2visual_lr():
         self.wandb.init(project=self.name, entity="xiaolanshu")
         # set_seed(seeds)
 
-    def compile(self, dataloaders, criterion, optimizer, num_epochs, batch_size, train_path, val_path, device='cpu'):
-
+    def compile(self, dataloaders, criterion, optimizer, num_epochs, batch_size, train_path, val_path,device='cpu'):
         self.criterion = criterion
         self.optimizer = optimizer
+        self.initlr=optimizer.param_groups[0]['lr']
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.train_path = train_path
@@ -67,10 +80,24 @@ class train_model_localv2visual_lr():
         #self.config.seed =self.seeds
         self.config.log_interval = 10
 
-        self.lrs=StepLR(self.optimizer,step_size=20,gamma=0.5)
     def summarys(self, input_size):
         summary(self.model, input_size=input_size)
+    def clip_gradient(self, grad_clip):
+        """
+        For calibrating misalignment gradient via cliping gradient technique
+        :param optimizer:
+        :param grad_clip:
+        :return:
+        """
+        for group in self.optimizer.param_groups:
+            for param in group['params']:
+                if param.grad is not None:
+                    param.grad.data.clamp_(-grad_clip, grad_clip)
 
+    def adjust_lr(self, epoch, decay_rate=0.1, decay_epoch=30):
+        decay = decay_rate ** (epoch // decay_epoch)
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] *= decay
     def fit(self, trainfile, testfile, tmpcheckfile, hardfile, checkfile):
         bigiou = 0
         fromnum = 0
@@ -91,31 +118,38 @@ class train_model_localv2visual_lr():
                     epoch_loss = 0
                     avgmeter1 = AverageMeter()
                     avgmeter2 = AverageMeter()
+                    self.adjust_lr(epoch,0.1,120)
                     for idx, data in enumerate(tqdm(self.dataloaders[phase])):
                         inputs, labels = data[0].to(
                             self.device), data[1].to(self.device)
-                        outputs = self.model(inputs)
-                        loss = self.criterion(outputs, labels)
+
+                        outputs,dp2,dp3,dp4 = self.model(inputs)
+                        #loss = self.criterion(outputs, labels)
+                        loss1=structure_loss(outputs,labels)
+                        loss2=structure_loss(dp2,labels)
+                        loss3=structure_loss(dp3,labels)
+                        loss4=structure_loss(dp4,labels)
+                        loss=loss1+loss2+loss3+loss4
+
                         step += 1
                         epoch_loss += loss.item()
                         self.optimizer.zero_grad()
                         loss.backward()
+                        self.clip_gradient(0.5)
                         self.optimizer.step()
                         iou = iou_score(outputs, labels)
                         dice = dice_coef(outputs, labels)
                         avgmeter1.update(iou, self.batch_size[phase])
                         avgmeter2.update(dice, self.batch_size[phase])
+                    print(self.optimizer)
                     print("loss: %5f" % (epoch_loss / step))
                     print("train: miou: %5f , midce: %5f " % (
                         avgmeter1.avg*1.0*100.0, 100.0*avgmeter2.avg*1.0))
-                    # with open(trainfile, 'a+') as filetrain:
-                    #     filetrain.write("epoch: %d  ,idx: %d   ,loss: %5f   ,miou:   %5f,maxiou: %5f    ,miniou: %5f    ,mdice: %5f   ,maxdice: %5f   ,mindice: %5f   " % (
-                    #         epoch, idx, epoch_loss / step, avgmeter1.avg*1.0*100.0, avgmeter1.max *1.0*100.0, avgmeter1.min*100.0, avgmeter2.avg*1.0*100.0, avgmeter2.max *1.0*100.0, avgmeter2.min*100.0)+'\n')
+
                     value = [epoch, idx, epoch_loss/step, avgmeter1.avg*1.0, avgmeter1.max *1.0,
                              avgmeter1.min*1.0, avgmeter2.avg*1.0, avgmeter2.max *1.0, avgmeter2.min*1.0]
                     df.loc[len(df)] = value
                     df.to_csv(trainfile)
-                    self.lrs.step()
                 else:
                     self.model.eval()
                     threshold = 0.5
@@ -133,7 +167,7 @@ class train_model_localv2visual_lr():
                             inputs, labels = data[0].to(
                                 self.device), data[1].to(self.device)
                             z = data[2]
-                            outputs = self.model(inputs)
+                            outputs,dp2,dp3,dp4 = self.model(inputs)
                             loss = self.criterion(outputs, labels)
                             step += 1
                             epoch_loss += loss.item()
@@ -174,17 +208,7 @@ class train_model_localv2visual_lr():
                         if fromnum != fromnumd:
                             savepth1 = tmpcheckfile+'_%d.pth' % epoch
                             torch.save(self.model.state_dict(), savepth1)
-                    # with open(testfile, 'a+') as fileval:
-                    #     fileval.write("ACC: %5f,PPV: %5f,TNR: %5f,TPR: %5f,F1: %5f,miou: %5f,maxiou: %5f,miniou: %5f,mdice: %5f,maxdice: %5f,mindice: %5f,iou1: %5f,iou2: %5f,iou3: %5f,iou4: %5f,iou5: %5f,iou6: %5f,iou7: %5f,iou8: %5f,dice1: %5f,dice2: %5f,dice3: %5f,dice4: %5f,dice5: %5f,dice6: %5f,dice7: %5f,dice8: %5f" % (
-                    #         te_avgmeter3.avg*1.0*100.0, te_avgmeter4.avg*1.0*100.0, te_avgmeter5.avg*1.0 *
-                    #         100.0, te_avgmeter6.avg*1.0*100.0, te_avgmeter7.avg*1.0*100.0, te_avgmeter1.avg*1.0*100.0,
-                    #         te_avgmeter1.max *1.0*100.0, te_avgmeter1.min*100.0, te_avgmeter2.avg*1.0 *
-                    #         100.0, te_avgmeter2.max *1.0*100.0, te_avgmeter2.min*100.0, te_avgmeter1.first*100.0,
-                    #         te_avgmeter1.second*100.0, te_avgmeter1.third*100.0, te_avgmeter1.forth *
-                    #         100.0, te_avgmeter1.fifth*100.0, te_avgmeter1.sixth*100.0,
-                    #         te_avgmeter1.seventh*100.0, te_avgmeter1.eighth*100.0, te_avgmeter2.first *
-                    #         100.0, te_avgmeter2.second*100.0, te_avgmeter2.third*100.0,
-                    #         te_avgmeter2.forth*100.0, te_avgmeter2.fifth*100.0, te_avgmeter2.sixth*100.0, te_avgmeter2.seventh*100.0, te_avgmeter2.eighth*100.0) + '\n')
+
                     val_value = [te_avgmeter3.avg*1.0, te_avgmeter4.avg*1.0, te_avgmeter5.avg*1.0, te_avgmeter6.avg*1.0, te_avgmeter7.avg*1.0, te_avgmeter1.avg*1.0, 
                                 te_avgmeter1.max *1.0, te_avgmeter1.min*1.0, te_avgmeter2.avg*1.0, te_avgmeter2.max *1.0, te_avgmeter2.min*1.0, te_avgmeter1.first*1.0,
                                  te_avgmeter1.second*1.0, te_avgmeter1.third*1.0, te_avgmeter1.forth*1.0, te_avgmeter1.fifth*1.0, te_avgmeter1.sixth*1.0,te_avgmeter1.seventh*1.0,
@@ -203,12 +227,10 @@ class train_model_localv2visual_lr():
         oldname = tmpcheckfile+'_%d.pth' % fromnum
         newname = checkfile+'_%d.pth' % fromnum
         os.rename(oldname, newname)
-        self.wandb.save(oldname)
-        if fromnum != fromnumd:
-            oldname2 = tmpcheckfile+'_%d.pth' % fromnumd
-            newname2 = checkfile+'_%d.pth' % fromnumd
-            os.rename(oldname2, newname2)
-            self.wandb.save(newname2)
+        self.wandb.save(newname)
+        oldname2 = tmpcheckfile+'_%d.pth' % fromnumd
+        newname2 = checkfile+'_%d.pth' % fromnumd
+        os.rename(oldname2, newname2)
 
         print("The max Mean IOU is:%.4f" % bigiou)
         print("The number epoch is:%d" % fromnum)
