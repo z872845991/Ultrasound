@@ -99,7 +99,6 @@ class Spaceatt(nn.Module):
         att=att@V
         return self.sig(att)
 
-
 class Attnblock(nn.Module):
     def __init__(self, in_channel, out_channel,decay=2):
         super(Attnblock, self).__init__()
