@@ -84,11 +84,11 @@ def predict_image(imgs,labels,imgs1_y,imgs2_y,names,flag):
         # cv2.imwrite(path1,img_)
         # cv2.imwrite(path2,label_)
         # cv2.imwrite(path3,img_ys)
+
     plt.show()
 
 if __name__=='__main__':
     parse=argparse.ArgumentParser()
-
     parse.add_argument('--pth',type=str,default='F:/checkpoints/train_7m_Teawater_v6_1e4_Kvasir-SEG_change_119.pth')
     parse.add_argument('--device',type=str,default='cpu')
     parse.add_argument('--dataset',type=str,default='FetusDataset')
