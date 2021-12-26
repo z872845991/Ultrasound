@@ -14,35 +14,31 @@ decay率默认2，尝试4
 channel 使用1*1
 space 使用3*3
 space 使用sigmoid而不是relu
-增加basic、enblock 1*1卷积
-channel add batchnorm2d
+plusatt use matrix add neither 矩阵元素相乘
 '''
 class Basic_blocks(nn.Module):
     def __init__(self,in_channel,out_channel,decay=1) -> None:
         super().__init__()
-        self.conv=nn.Conv2d(in_channel,out_channel,1)
         self.conv1 = nn.Sequential(
-            nn.Conv2d(out_channel, out_channel, 3, padding=1),
+            nn.Conv2d(in_channel, out_channel, 3, padding=1),
             nn.BatchNorm2d(out_channel),
             nn.ReLU(inplace=True)
         )
         self.conv2 = nn.Sequential(
             nn.Conv2d(out_channel, out_channel, 3, padding=1),
             nn.BatchNorm2d(out_channel),
-            nn.ReLU(inplace=True)
+            nn.Sigmoid()
         )
     def forward(self,x):
-        x=self.conv(x)
         x1=self.conv1(x)
         x2=self.conv2(x1)
-        return x+x2
+        return x1*x2
 
 class En_blocks(nn.Module):
     def __init__(self, in_channel, out_channel,decay=1):
         super(En_blocks, self).__init__()
-        self.conv=nn.Conv2d(in_channel,out_channel//decay,1)
         self.conv1 = nn.Sequential(
-            nn.Conv2d(out_channel//decay, out_channel//decay, 3, padding=1),
+            nn.Conv2d(in_channel, out_channel//decay, 3, padding=1),
             nn.BatchNorm2d(out_channel//decay),
             nn.ReLU(inplace=True)
         )
@@ -54,9 +50,7 @@ class En_blocks(nn.Module):
         self.channelatt=Channelatt(out_channel,8)
 
     def forward(self, x):
-        x=self.conv(x)
         conv1 = self.conv1(x)
-        conv1=conv1+x
         conv2 = self.conv2(conv1)
         out=self.channelatt(conv2)
         return out
@@ -66,10 +60,10 @@ class Outblock(nn.Module):
     def __init__(self, in_channel):
         super(Outblock, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channel, in_channel, 3, padding=1),
-            nn.BatchNorm2d(in_channel),
+            nn.Conv2d(in_channel, in_channel//2, 3, padding=1),
+            nn.BatchNorm2d(in_channel//2),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channel,1,3,padding=1),
+            nn.Conv2d(in_channel//2,1,3,padding=1),
         )
     def forward(self, x):
         conv1 = self.conv1(x)
@@ -80,7 +74,6 @@ class Channelatt(nn.Module):
         super(Channelatt, self).__init__()
         self.layer = nn.Sequential(
             nn.Conv2d(in_channel, in_channel // decay, 1),
-            nn.BatchNorm2d(in_channel//decay),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channel // decay, in_channel, 1),
             nn.Sigmoid()
@@ -145,15 +138,14 @@ class Attnblock(nn.Module):
         point = self.conv(concat)
         catt = self.catt(point)
         satt = self.satt(point, catt)
-        catt=catt+point
-        satt=satt+point
-        att=torch.cat([satt,catt],dim=1)
+        plusatt=catt+satt
+        att=torch.cat([plusatt,catt],dim=1)
         return att
 
 
-class Teawater_v37(nn.Module):
+class Teawater_v38(nn.Module):
     def __init__(self, n_class=1,decay=2):
-        super(Teawater_v37, self).__init__()
+        super(Teawater_v38, self).__init__()
         self.pool = nn.MaxPool2d(2)
 
         self.down_conv1 = En_blocks(3, 64,decay)
@@ -201,6 +193,6 @@ class Teawater_v37(nn.Module):
         out = self.out(deco1)
         return out,out2,out3,out4,out5
 if __name__=='__main__':
-    model=Teawater_v37(1,2)
+    model=Teawater_v38(1,2)
     summary(model,(3,512,512))
     print('# generator parameters:', sum(param.numel() for param in model.parameters()))
