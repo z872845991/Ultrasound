@@ -14,7 +14,7 @@ decay率默认2，尝试4
 channel 使用1*1
 space 使用3*3
 space 使用sigmoid而不是relu
-plusatt use matrix add neither 矩阵元素相乘
+在瓶颈处做类似解码器的处理，并增加了短连接
 '''
 class Basic_blocks(nn.Module):
     def __init__(self,in_channel,out_channel,decay=1) -> None:
@@ -127,25 +127,25 @@ class Attnblock(nn.Module):
         self.conv = Basic_blocks(in_channel, out_channel//2)
         self.catt = Channelatt(out_channel//2,decay)
         self.satt = Spaceatt(out_channel//2,decay)
-        self.endconv=nn.Sequential(
-            nn.Conv2d(out_channel,out_channel,3,padding=1),
-            nn.BatchNorm2d(out_channel),
-            nn.ReLU(inplace=True)
-        )
+        # self.endconv=nn.Sequential(
+        #     nn.Conv2d(out_channel,out_channel,3,padding=1),
+        #     nn.BatchNorm2d(out_channel),
+        #     nn.ReLU(inplace=True)
+        # )
     def forward(self, high,low):
         up = self.upsample(high)
         concat = torch.cat([up, low], dim=1)
         point = self.conv(concat)
         catt = self.catt(point)
         satt = self.satt(point, catt)
-        plusatt=catt+satt
+        plusatt=catt*satt
         att=torch.cat([plusatt,catt],dim=1)
-        return self.endconv(att)
+        return att
 
 
-class Teawater_v38(nn.Module):
+class Teawater_v41(nn.Module):
     def __init__(self, n_class=1,decay=2):
-        super(Teawater_v38, self).__init__()
+        super(Teawater_v41, self).__init__()
         self.pool = nn.MaxPool2d(2)
 
         self.down_conv1 = En_blocks(3, 64,decay)
@@ -153,8 +153,9 @@ class Teawater_v38(nn.Module):
         self.down_conv3 = En_blocks(128, 256,decay)
         self.down_conv4 = En_blocks(256, 512,decay)
         self.down_conv5 = En_blocks(512, 1024,decay)
-        #self.center = Center()
-
+        self.centerconv1=nn.Conv2d(1024,256,1)
+        self.centeratt=Spaceatt(256,decay)
+        self.centerconv2=nn.Conv2d(256,1024,1)
         self.up_conv4 = Attnblock(1024,512,decay)
         self.up_conv3 = Attnblock(512,256,decay)
         self.up_conv2 = Attnblock(256,128,decay)
@@ -177,7 +178,10 @@ class Teawater_v38(nn.Module):
         down4 = self.down_conv4(pool3)
         pool4 = self.pool(down4)
         #center = self.center(down1, down2, down3, pool4)
-        center=self.down_conv5(pool4)
+        down5=self.down_conv5(pool4)
+        down5_conv1=self.centerconv1(down5)
+        center=self.centeratt(down5_conv1,down5_conv1)
+        center=self.centerconv2(center)+down5
         out5=self.dp5(center)
         out5=F.interpolate(out5,(h,w),mode='bilinear',align_corners=False)
         deco4 = self.up_conv4(center,down4)
@@ -193,5 +197,6 @@ class Teawater_v38(nn.Module):
         out = self.out(deco1)
         return out,out2,out3,out4,out5
 if __name__=='__main__':
-    model=Teawater_v38(1,2)
+    model=Teawater_v41(1,2)
     summary(model,(3,512,512))
+    print('# generator parameters:', sum(param.numel() for param in model.parameters()))

@@ -79,7 +79,9 @@ class SpatialGate(nn.Module):
         self.spatial = BasicConv(2, 1, kernel_size, stride=1, padding=(kernel_size-1) // 2, relu=False)
 
     def forward(self, x):
+        print(x.shape)
         x_compress = self.compress(x)
+        print(x_compress.shape)
         x_out = self.spatial(x_compress)
         scale = F.sigmoid(x_out) # broadcasting
         return x * scale
@@ -105,4 +107,3 @@ if __name__ == '__main__':
     a = torch.randn((3,256,512,512))
     model = CBAM(256)
     b = model(a)
-    print(b.shape)

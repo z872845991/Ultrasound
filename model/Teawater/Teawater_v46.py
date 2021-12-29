@@ -14,7 +14,7 @@ decay率默认2，尝试4
 channel 使用1*1
 space 使用3*3
 space 使用sigmoid而不是relu
-plusatt use matrix add neither 矩阵元素相乘
+bottleneck与down3 down2 down1相加
 '''
 class Basic_blocks(nn.Module):
     def __init__(self,in_channel,out_channel,decay=1) -> None:
@@ -85,7 +85,6 @@ class Channelatt(nn.Module):
         se = self.layer(gp)
         return x * se
 
-
 class Spaceatt(nn.Module):
     def __init__(self, in_channel,decay=2):
         super(Spaceatt, self).__init__()
@@ -127,25 +126,25 @@ class Attnblock(nn.Module):
         self.conv = Basic_blocks(in_channel, out_channel//2)
         self.catt = Channelatt(out_channel//2,decay)
         self.satt = Spaceatt(out_channel//2,decay)
-        self.endconv=nn.Sequential(
-            nn.Conv2d(out_channel,out_channel,3,padding=1),
-            nn.BatchNorm2d(out_channel),
-            nn.ReLU(inplace=True)
-        )
+        # self.endconv=nn.Sequential(
+        #     nn.Conv2d(out_channel,out_channel,3,padding=1),
+        #     nn.BatchNorm2d(out_channel),
+        #     nn.ReLU(inplace=True)
+        # )
     def forward(self, high,low):
         up = self.upsample(high)
         concat = torch.cat([up, low], dim=1)
         point = self.conv(concat)
         catt = self.catt(point)
         satt = self.satt(point, catt)
-        plusatt=catt+satt
+        plusatt=catt*satt
         att=torch.cat([plusatt,catt],dim=1)
-        return self.endconv(att)
+        return att
 
 
-class Teawater_v38(nn.Module):
+class Teawater_v46(nn.Module):
     def __init__(self, n_class=1,decay=2):
-        super(Teawater_v38, self).__init__()
+        super(Teawater_v46, self).__init__()
         self.pool = nn.MaxPool2d(2)
 
         self.down_conv1 = En_blocks(3, 64,decay)
@@ -165,6 +164,11 @@ class Teawater_v38(nn.Module):
         self.dp3=nn.Conv2d(256,1,1)
         self.dp2=nn.Conv2d(128,1,1)
         self.out = Outblock(64)
+
+        self.center4=nn.Conv2d(1024,512,1)
+        self.center3=nn.Conv2d(1024,256,1)
+        self.center2=nn.Conv2d(1024,128,1)
+        self.center1=nn.Conv2d(1024,64,1)
     
     def forward(self, inputs):
         b,c,h,w=inputs.size()
@@ -178,20 +182,32 @@ class Teawater_v38(nn.Module):
         pool4 = self.pool(down4)
         #center = self.center(down1, down2, down3, pool4)
         center=self.down_conv5(pool4)
+        center4=self.center4(center)
+        center3=self.center3(center)
+        center2=self.center2(center)
+        center1=self.center1(center)
+        center4=F.interpolate(center4,(h//8,w//8),mode='bilinear',align_corners=False)
+        center3=F.interpolate(center3,(h//4,w//4),mode='bilinear',align_corners=False)
+        center2=F.interpolate(center2,(h//2,w//2),mode='bilinear',align_corners=False)
+        center1=F.interpolate(center1,(h,w),mode='bilinear',align_corners=False)
         out5=self.dp5(center)
         out5=F.interpolate(out5,(h,w),mode='bilinear',align_corners=False)
         deco4 = self.up_conv4(center,down4)
+        # deco4=center4+deco4
         out4=self.dp4(deco4)
         out4=F.interpolate(out4,(h,w),mode='bilinear',align_corners=False)
-        deco3 = self.up_conv3(deco4, down3)
+        deco3 = self.up_conv3(deco4, down3+center3)
+        # deco3=center3+deco3
         out3=self.dp3(deco3)
         out3=F.interpolate(out3,(h,w),mode='bilinear',align_corners=False)
-        deco2 = self.up_conv2(deco3, down2)
+        deco2 = self.up_conv2(deco3, down2+center2)
+        # deco2=deco2+center2
         out2=self.dp2(deco2)
         out2=F.interpolate(out2,(h,w),mode='bilinear',align_corners=False)
-        deco1 = self.up_conv1(deco2, down1)
+        deco1 = self.up_conv1(deco2, down1+center1)
         out = self.out(deco1)
         return out,out2,out3,out4,out5
 if __name__=='__main__':
-    model=Teawater_v38(1,2)
+    model=Teawater_v46(1,2)
     summary(model,(3,512,512))
+    print('# generator parameters:', sum(param.numel() for param in model.parameters()))

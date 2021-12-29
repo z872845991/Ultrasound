@@ -14,7 +14,6 @@ decay率默认2，尝试4
 channel 使用1*1
 space 使用3*3
 space 使用sigmoid而不是relu
-plusatt use matrix add neither 矩阵元素相乘
 '''
 class Basic_blocks(nn.Module):
     def __init__(self,in_channel,out_channel,decay=1) -> None:
@@ -32,7 +31,7 @@ class Basic_blocks(nn.Module):
     def forward(self,x):
         x1=self.conv1(x)
         x2=self.conv2(x1)
-        return x1*x2
+        return x1+x2
 
 class En_blocks(nn.Module):
     def __init__(self, in_channel, out_channel,decay=1):
@@ -127,25 +126,25 @@ class Attnblock(nn.Module):
         self.conv = Basic_blocks(in_channel, out_channel//2)
         self.catt = Channelatt(out_channel//2,decay)
         self.satt = Spaceatt(out_channel//2,decay)
-        self.endconv=nn.Sequential(
-            nn.Conv2d(out_channel,out_channel,3,padding=1),
-            nn.BatchNorm2d(out_channel),
-            nn.ReLU(inplace=True)
-        )
+        # self.endconv=nn.Sequential(
+        #     nn.Conv2d(out_channel,out_channel,3,padding=1),
+        #     nn.BatchNorm2d(out_channel),
+        #     nn.ReLU(inplace=True)
+        # )
     def forward(self, high,low):
         up = self.upsample(high)
         concat = torch.cat([up, low], dim=1)
         point = self.conv(concat)
         catt = self.catt(point)
         satt = self.satt(point, catt)
-        plusatt=catt+satt
+        plusatt=catt*satt
         att=torch.cat([plusatt,catt],dim=1)
-        return self.endconv(att)
+        return att
 
 
-class Teawater_v38(nn.Module):
+class Teawater_v34(nn.Module):
     def __init__(self, n_class=1,decay=2):
-        super(Teawater_v38, self).__init__()
+        super(Teawater_v34, self).__init__()
         self.pool = nn.MaxPool2d(2)
 
         self.down_conv1 = En_blocks(3, 64,decay)
@@ -193,5 +192,6 @@ class Teawater_v38(nn.Module):
         out = self.out(deco1)
         return out,out2,out3,out4,out5
 if __name__=='__main__':
-    model=Teawater_v38(1,2)
+    model=Teawater_v34(1,2)
     summary(model,(3,512,512))
+    print('# generator parameters:', sum(param.numel() for param in model.parameters()))

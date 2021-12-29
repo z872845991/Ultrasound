@@ -15,6 +15,8 @@ channel 使用1*1
 space 使用3*3
 space 使用sigmoid而不是relu
 plusatt use matrix add neither 矩阵元素相乘
+Q K运算方式更改
+en_block加一个残差进去
 '''
 class Basic_blocks(nn.Module):
     def __init__(self,in_channel,out_channel,decay=1) -> None:
@@ -53,7 +55,7 @@ class En_blocks(nn.Module):
         conv1 = self.conv1(x)
         conv2 = self.conv2(conv1)
         out=self.channelatt(conv2)
-        return out
+        return out+conv2
 
 
 class Outblock(nn.Module):
@@ -116,7 +118,7 @@ class Spaceatt(nn.Module):
         Q = self.Q(low)
         K = self.K(low)
         V = self.V(high)
-        att = Q * K
+        att = Q @ K
         att=att@V
         return self.sig(att)
 
@@ -140,12 +142,12 @@ class Attnblock(nn.Module):
         satt = self.satt(point, catt)
         plusatt=catt+satt
         att=torch.cat([plusatt,catt],dim=1)
-        return self.endconv(att)
+        return att
 
 
-class Teawater_v38(nn.Module):
+class Teawater_v39(nn.Module):
     def __init__(self, n_class=1,decay=2):
-        super(Teawater_v38, self).__init__()
+        super(Teawater_v39, self).__init__()
         self.pool = nn.MaxPool2d(2)
 
         self.down_conv1 = En_blocks(3, 64,decay)
@@ -193,5 +195,5 @@ class Teawater_v38(nn.Module):
         out = self.out(deco1)
         return out,out2,out3,out4,out5
 if __name__=='__main__':
-    model=Teawater_v38(1,2)
+    model=Teawater_v39(1,2)
     summary(model,(3,512,512))
